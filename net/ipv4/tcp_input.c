@@ -1751,6 +1751,7 @@ static void tcp_rate_gen(struct sock *sk, u32 delivered, u32 lost,
 		return;
 	}
 	rs->delivered   = tp->delivered - rs->prior_delivered;
+	rs->lost        = tp->lost - rs->prior_lost;
 
 	rs->delivered_ce = tp->delivered_ce - rs->prior_delivered_ce;
 	/* delivered_ce occupies less than 32 bits in the skb control block */
@@ -1819,6 +1820,7 @@ static void tcp_rate_skb_delivered(struct sock *sk, struct sk_buff *skb,
 	if (!rs->prior_delivered ||
 	    tcp_skb_sent_after(tx_tstamp, tp->first_tx_mstamp,
 			       scb->end_seq, rs->last_end_seq)) {
+		rs->prior_lost	     = scb->tx.lost;
 		rs->prior_delivered_ce  = scb->tx.delivered_ce;
 		rs->prior_delivered  = scb->tx.delivered;
 		rs->prior_mstamp     = scb->tx.delivered_mstamp;
