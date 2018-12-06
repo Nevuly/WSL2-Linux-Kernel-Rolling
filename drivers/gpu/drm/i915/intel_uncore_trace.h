@@ -7,6 +7,10 @@
 #if !defined(__INTEL_UNCORE_TRACE_H__) || defined(TRACE_HEADER_MULTI_READ)
 #define __INTEL_UNCORE_TRACE_H__
 
+#if defined(CONFIG_PREEMPT_RT) && !defined(NOTRACE)
+#define NOTRACE
+#endif
+
 #include "i915_reg_defs.h"
 
 #include <linux/types.h>
