@@ -232,7 +232,8 @@ struct tcp_sock {
 		tcp_usec_ts : 1, /* TSval values in usec */
 		is_sack_reneg:1,    /* in recovery from loss with SACK reneg? */
 		is_cwnd_limited:1,/* forward progress limited by snd_cwnd? */
-		recvmsg_inq : 1;/* Indicate # of bytes in queue upon recvmsg */
+		recvmsg_inq:1,/* Indicate # of bytes in queue upon recvmsg */
+		fast_ack_mode:1;/* ack ASAP if >1 rcv_mss received? */
 	__cacheline_group_end(tcp_sock_read_txrx);
 
 	/* RX read-mostly hotpath cache lines */
