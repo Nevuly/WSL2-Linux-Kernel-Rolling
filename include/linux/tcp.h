@@ -299,7 +299,8 @@ struct tcp_sock {
  *	0x5?10 << 16 + snd_wnd in net byte order
  */
 	u8	nonagle     : 4,/* Disable Nagle algorithm?             */
-		rate_app_limited:1;  /* rate_{delivered,interval_us} limited? */
+		rate_app_limited:1,  /* rate_{delivered,interval_us} limited? */
+		tlp_orig_data_app_limited:1; /* app-limited before TLP rtx? */
 	u8	received_ce_pending:4, /* Not yet transmit cnt of received_ce */
 		accecn_opt_sent_w_dsack:1,/* Sent ACCECN opt in previous ACK w/ D-SACK */
 		unused2:3;
