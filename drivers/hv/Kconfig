@@ -73,4 +73,6 @@ config MSHV_ROOT
 
 	  If unsure, say N.
 
+source "drivers/hv/dxgkrnl/Kconfig"
+
 endmenu
