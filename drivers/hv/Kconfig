@@ -110,4 +110,6 @@ config MSHV_VTL
 
 	  If unsure, say N.
 
+source "drivers/hv/dxgkrnl/Kconfig"
+
 endmenu
