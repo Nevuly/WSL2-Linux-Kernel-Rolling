@@ -241,6 +241,11 @@ obj-$(CONFIG_IP_VS) += ipvs/
 # lwtunnel
 obj-$(CONFIG_LWTUNNEL) += nf_hooks_lwtunnel.o
 
+# Nftables/netfilter fullcone expression support
+obj-$(CONFIG_NFT_FULLCONE) += \
+	nf_nat_fullcone.o \
+	nft_ext_fullcone.o
+
 ifdef CONFIG_GCOV_PROFILE_NETFILTER
 GCOV_PROFILE := y
 endif
