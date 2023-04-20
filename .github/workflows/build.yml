@@ -72,6 +72,7 @@ jobs:
         with:
           name: ${{ env.TAG_VERSION }}
           tag_name: ${{ env.TAG_VERSION }}
+          draft: true
           body: |
             **NOTICE**
             ARM64 kernel has not been tested. If you have any issues, please leave an issue on the Issues tab!
