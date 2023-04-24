@@ -32,10 +32,10 @@ as follows:
 1. Install the build dependencies (Arch Linux):  
    `$ sudo pacman -S aarch64-linux-gnu-gcc bc bison curl flex gcc git pahole unzip wget zip`
 
-2-1. Build the kernel using the WSL2 kernel configuration (x86):  
+2. Build the kernel using the WSL2 kernel configuration (x86):  
    `$ make KCONFIG_CONFIG=arch/x86/config/config-wsl-x86`
 
-2-2. Build the kernel using the WSL2 kernel configuration (arm64):  
+3. Build the kernel using the WSL2 kernel configuration (arm64):  
    `$ export ARCH=arm64 && export CROSS_COMPILE=aarch64-linux-gnu-`  
    `$ make KCONFIG_CONFIG=arch/arm64/config/config-wsl-arm64`
 
