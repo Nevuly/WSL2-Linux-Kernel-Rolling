@@ -6,7 +6,7 @@ Maintainer: Yang Jeong Hun (Nevuly)
 
 | Kernel Version | Status |
 |:--------------:|:------:|
-| [Linux 6.2.x][wsl2-kernel-6.2] | Support |
+| [Linux 6.2.x][wsl2-kernel-6.2] | EOL |
 | [Linux 6.1.x][wsl2-kernel-lts] | [Moved to LTS][wsl2-kernel-lts] |
 
 ## Introduction
@@ -48,7 +48,7 @@ as follows:
 Please see the documentation on the [.wslconfig configuration
 file][install-inst] for information on using a custom built kernel.
 
-[wsl2-kernel-6.2]: https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/tree/wsl-6.2-rolling
+[wsl2-kernel-6.2]: https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/tree/wsl-6.2-rolling-eol
 [wsl2-kernel-lts]: https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling-LTS/tree/wsl-6.1-lts
 [wsl2-kernel-rolling]: https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling
 [about-wsl2]: https://docs.microsoft.com/en-us/windows/wsl/about#what-is-wsl-2
