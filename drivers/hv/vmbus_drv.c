@@ -36,7 +36,11 @@
 #include <linux/dma-map-ops.h>
 #include <linux/pci.h>
 #include <clocksource/hyperv_timer.h>
+
+#ifdef CONFIG_X86
 #include <asm/mshyperv.h>
+#endif
+
 #include "hyperv_vmbus.h"
 
 struct vmbus_dynid {
