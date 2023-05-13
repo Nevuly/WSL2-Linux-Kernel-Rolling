@@ -30,7 +30,7 @@ Instructions for building an x86_64 WSL2 kernel with an Ubuntu distribution are
 as follows:
 
 1. Install the build dependencies (Arch Linux):  
-   `$ sudo pacman -S aarch64-linux-gnu-gcc bc bison curl flex gcc git pahole unzip wget zip`
+   `$ sudo pacman -S aarch64-linux-gnu-gcc bc bison curl flex gcc git pahole python unzip wget zip`
 
 2. Build the kernel using the WSL2 kernel configuration (x86):  
    `$ make KCONFIG_CONFIG=arch/x86/config/config-wsl-x86`
