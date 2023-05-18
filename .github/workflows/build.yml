@@ -3,7 +3,7 @@ name: Stable Kernel CI
 on:
   push:
     tags:
-      - 'linux-msft-rolling-wsl-6.3.[0-9]+'
+      - 'linux-wsl-stable-6.3.[0-9]+'
 
 run-name: Rolling Release Build ${{ github.ref_name }}
 
