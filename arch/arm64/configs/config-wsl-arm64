@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm64 6.3.7 Kernel Configuration
+# Linux/arm64 6.3.8 Kernel Configuration
 #
 CONFIG_CC_VERSION_TEXT="aarch64-linux-gnu-gcc (GCC) 13.1.0"
 CONFIG_CC_IS_GCC=y
@@ -4290,8 +4290,6 @@ CONFIG_PAGE_EXTENSION=y
 # CONFIG_DEBUG_PAGEALLOC is not set
 # CONFIG_SLUB_DEBUG is not set
 # CONFIG_PAGE_OWNER is not set
-CONFIG_PAGE_TABLE_CHECK=y
-# CONFIG_PAGE_TABLE_CHECK_ENFORCED is not set
 # CONFIG_PAGE_POISONING is not set
 # CONFIG_DEBUG_PAGE_REF is not set
 # CONFIG_DEBUG_RODATA_TEST is not set
