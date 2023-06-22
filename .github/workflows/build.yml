@@ -5,7 +5,7 @@ on:
     tags:
       - 'linux-wsl-stable-6.3.[0-9]+'
 
-run-name: Rolling Release Build ${{ github.ref_name }}
+run-name: Stable Release Build ${{ github.ref_name }}
 
 jobs:
   build:
@@ -15,9 +15,9 @@ jobs:
       matrix:
         include:
           - arch: x86
-            image-name: vmlinux-x86
+            image-name: bzImage-x86_64
           - arch: arm64
-            image-name: vmlinux-arm64
+            image-name: bzImage-arm64
     env:
       TAG_VERSION: '${{ github.ref_name }}'
 
@@ -39,21 +39,29 @@ jobs:
           then
           echo "Build X86 Kernel"
           make KCONFIG_CONFIG=arch/x86/configs/config-wsl-x86 -j$(echo `nproc` + 1 | bc)
+          cp arch/x86/boot/bzImage ../${{ matrix.image-name }}
+          mkdir -p ${{ matrix.image-name }}-modules_install && make modules_install INSTALL_MOD_PATH=${{ matrix.image-name }}-modules_install
+          tar -czf ${{ matrix.image-name }}-modules_install.tar.gz ${{ matrix.image-name }}-modules_install && mv ${{ matrix.image-name }}-modules_install.tar.gz ../
           else
           echo "Build ARM64 Kernel"
           export ARCH=arm64 && export CROSS_COMPILE=aarch64-linux-gnu-
           make KCONFIG_CONFIG=arch/arm64/configs/config-wsl-arm64 -j$(echo `nproc` + 1 | bc)
+          cp arch/arm64/boot/Image ../${{ matrix.image-name }}
+          mkdir -p ${{ matrix.image-name }}-modules_install && make modules_install INSTALL_MOD_PATH=${{ matrix.image-name }}-modules_install
+          tar -czf ${{ matrix.image-name }}-modules_install.tar.gz ${{ matrix.image-name }}-modules_install && mv ${{ matrix.image-name }}-modules_install.tar.gz ../
           fi
-          mv vmlinux ../${{ matrix.image-name }}
           cd .. && sha256sum ${{ matrix.image-name }} > ${{ matrix.image-name }}.sha256
+          sha256sum ${{ matrix.image-name }}-modules_install.tar.gz > ${{ matrix.image-name }}-modules_install.sha256
 
-      - name: Upload vmlinux
+      - name: Upload bzImage
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.image-name }}
           path: |
             ${{ matrix.image-name }}
             ${{ matrix.image-name }}.sha256
+            ${{ matrix.image-name }}-modules_install.tar.gz
+            ${{ matrix.image-name }}-modules_install.sha256
 
   release:
     runs-on: ubuntu-latest
