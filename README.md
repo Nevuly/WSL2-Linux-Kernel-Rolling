@@ -1,15 +1,12 @@
 # Rolling Release Stable Kernel for WSL2
 
-[![Stable Kernel CI](https://img.shields.io/github/actions/workflow/status/Nevuly/WSL2-Linux-Kernel-Rolling/build.yml?label=github%20actions%20build&logo=github-actions&logoColor=%23FFFFFF&style=for-the-badge&labelColor=%23000000)](https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/actions/workflows/build.yml)
-[![Release](https://img.shields.io/github/v/release/Nevuly/WSL2-Linux-Kernel-Rolling?display_name=tag&label=LATEST&logo=Linux&logoColor=%23FFFFFF&style=for-the-badge&labelColor=%23000000)](https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/releases/latest)
-
 Maintainer: Yang Jeong Hun (Nevuly)
 
 ## Current Kernel Status
 
 | Kernel Version | Status |
 |:--------------:|:------:|
-| [Linux 6.3.x][wsl2-kernel-6.3] | Support |
+| [Linux 6.3.x][wsl2-kernel-6.3] | End Of Life |
 
 ## Introduction
 
@@ -42,12 +39,15 @@ as follows:
    `$ export ARCH=arm64 && export CROSS_COMPILE=aarch64-linux-gnu-`  
    `$ make KCONFIG_CONFIG=arch/arm64/config/config-wsl-arm64`
 
+4. Save the module to a separate folder:  
+   `$ mkdir -p modules_install && make modules_install INSTALL_MOD_PATH=modules_install`
+
 ## Install Instructions
 
 Please see the documentation on the [.wslconfig configuration
 file][install-inst] for information on using a custom built kernel.
 
-[wsl2-kernel-6.3]: https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/tree/wsl-6.3-rolling
+[wsl2-kernel-6.3]: https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/tree/wsl-6.3-rolling-eol
 [wsl2-kernel-rolling]: https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling
 [about-wsl2]: https://docs.microsoft.com/en-us/windows/wsl/about#what-is-wsl-2
 [gh-actions]: https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/actions
