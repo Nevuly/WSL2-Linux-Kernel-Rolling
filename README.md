@@ -26,7 +26,7 @@ If you want to fix a bug or add new features, Please use the [Pull Request][pr].
 
 ## Build Instructions
 
-Instructions for building an x86_64 WSL2 kernel with an Ubuntu distribution are
+Instructions for building an x86_64 WSL2 kernel with an Arch Linux distribution are
 as follows:
 
 1. Install the build dependencies (Arch Linux):  
