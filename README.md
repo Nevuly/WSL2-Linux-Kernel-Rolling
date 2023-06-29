@@ -26,7 +26,7 @@ If you want to fix a bug or add new features, Please use the [Pull Request][pr].
 
 ## Build Instructions
 
-Instructions for building an x86_64 WSL2 kernel with an Ubuntu distribution are
+Instructions for building an x86_64 WSL2 kernel with an Arch Linux distribution are
 as follows:
 
 1. Install the build dependencies (Arch Linux):  
@@ -38,6 +38,9 @@ as follows:
 3. Build the kernel using the WSL2 kernel configuration (arm64):  
    `$ export ARCH=arm64 && export CROSS_COMPILE=aarch64-linux-gnu-`  
    `$ make KCONFIG_CONFIG=arch/arm64/config/config-wsl-arm64`
+
+4. Save the module to a separate folder:  
+   `$ mkdir -p modules_install && make modules_install INSTALL_MOD_PATH=modules_install`
 
 ## Install Instructions
 
