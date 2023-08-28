@@ -52,6 +52,11 @@ static inline u64 hv_get_register(unsigned int reg)
 	return hv_get_vpreg(reg);
 }
 
+static __always_inline u64 hv_raw_get_register(unsigned int reg)
+{
+	return hv_get_vpreg(reg);
+}
+
 /* Define the interrupt ID used by STIMER0 Direct Mode interrupts. This
  * value can't come from ACPI tables because it is needed before the
  * Linux ACPI subsystem is initialized.
