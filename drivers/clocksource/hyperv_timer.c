@@ -387,10 +387,17 @@ static __always_inline u64 read_hv_clock_msr(void)
  * Hyper-V and 32-bit x86.  The TSC reference page version is preferred.
  */
 
+#ifdef CONFIG_X86
 static union {
 	struct ms_hyperv_tsc_page page;
 	u8 reserved[PAGE_SIZE];
 } tsc_pg __bss_decrypted __aligned(PAGE_SIZE);
+#else
+static union {
+	struct ms_hyperv_tsc_page page;
+	u8 reserved[PAGE_SIZE];
+} tsc_pg __aligned(PAGE_SIZE);
+#endif
 
 static struct ms_hyperv_tsc_page *tsc_page = &tsc_pg.page;
 static unsigned long tsc_pfn;
