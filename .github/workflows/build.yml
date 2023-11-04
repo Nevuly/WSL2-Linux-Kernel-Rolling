@@ -16,8 +16,7 @@ jobs:
         include:
           - arch: x86
             image-name: bzImage-x86_64
-          - arch: arm64
-            image-name: Image-arm64
+
     env:
       TAG_VERSION: '${{ github.ref_name }}'
 
@@ -38,6 +37,8 @@ jobs:
           if [ ${{ matrix.arch }} == "x86" ]
           then
           echo "Build X86 Kernel"
+          chmod +x ./arch/x86/configs/kerneloptions.sh
+          ./arch/x86/configs/kerneloptions.sh
           make KCONFIG_CONFIG=arch/x86/configs/config-wsl-x86 -j$(echo `nproc` + 1 | bc)
           cp arch/x86/boot/bzImage ../${{ matrix.image-name }}
           mkdir -p ${{ matrix.image-name }}-modules_install && make modules_install INSTALL_MOD_PATH=${{ matrix.image-name }}-modules_install
