@@ -9,7 +9,7 @@ Maintainer: Yang Jeong Hun (Nevuly)
 
 | Kernel Version | Status |
 |:--------------:|:------:|
-| [Linux 6.6.x][wsl2-kernel-6.6] | Support |
+| [Linux 6.6.x][wsl2-kernel-6.6] | Stable Support |
 
 ## Introduction
 
@@ -41,9 +41,6 @@ as follows:
 3. Build the kernel using the WSL2 kernel configuration (arm64):  
    `$ export ARCH=arm64 && export CROSS_COMPILE=aarch64-linux-gnu-`  
    `$ make KCONFIG_CONFIG=arch/arm64/config/config-wsl-arm64`
-
-4. Save the module to a separate folder:  
-   `$ mkdir -p modules_install && make modules_install INSTALL_MOD_PATH=modules_install`
 
 ## Install Instructions
 
