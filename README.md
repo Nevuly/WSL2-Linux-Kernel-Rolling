@@ -39,9 +39,6 @@ as follows:
    `$ export ARCH=arm64 && export CROSS_COMPILE=aarch64-linux-gnu-`  
    `$ make KCONFIG_CONFIG=arch/arm64/config/config-wsl-arm64`
 
-4. Save the module to a separate folder:  
-   `$ mkdir -p modules_install && make modules_install INSTALL_MOD_PATH=modules_install`
-
 ## Install Instructions
 
 Please see the documentation on the [.wslconfig configuration
