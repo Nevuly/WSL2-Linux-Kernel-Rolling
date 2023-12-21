@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm64 6.6.7 Kernel Configuration
+# Linux/arm64 6.6.8 Kernel Configuration
 #
 CONFIG_CC_VERSION_TEXT="aarch64-linux-gnu-gcc (GCC) 13.2.0"
 CONFIG_CC_IS_GCC=y
@@ -257,6 +257,7 @@ CONFIG_TRACEPOINTS=y
 #
 CONFIG_CRASH_CORE=y
 # CONFIG_KEXEC_FILE is not set
+# CONFIG_CRASH_DUMP is not set
 # end of Kexec and crash features
 # end of General setup
 
@@ -4473,8 +4474,6 @@ CONFIG_DEBUG_SG=y
 CONFIG_DEBUG_NOTIFIERS=y
 # CONFIG_DEBUG_MAPLE_TREE is not set
 # end of Debug kernel data structures
-
-CONFIG_DEBUG_CREDENTIALS=y
 
 #
 # RCU Debugging
