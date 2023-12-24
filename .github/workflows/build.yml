@@ -39,10 +39,12 @@ jobs:
           then
           echo "Build X86_64 Kernel"
           make KCONFIG_CONFIG=arch/x86/configs/config-wsl-x86 -j$(echo `nproc` + 1 | bc)
+          cp arch/x86/boot/bzImage ../${{ matrix.image-name }}
           else
           echo "Build ARM64 Kernel"
           export ARCH=arm64 && export CROSS_COMPILE=aarch64-linux-gnu-
           make KCONFIG_CONFIG=arch/arm64/configs/config-wsl-arm64 -j$(echo `nproc` + 1 | bc)
+          cp arch/arm64/boot/Image ../${{ matrix.image-name }}
           fi
 
       - name: Generate Kernel Module File
