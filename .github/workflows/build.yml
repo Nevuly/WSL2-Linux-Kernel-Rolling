@@ -50,6 +50,8 @@ jobs:
       - name: Generate Kernel Module File
         run: |
           cd linux
+          echo "Extract Kernel Version"
+          IFS=- read -r var1 var2 var3 var4 <<< ${{ env.TAG_VERSION }}
           echo "Download Kernel Module Installer"
           wget https://gist.githubusercontent.com/Nevuly/4fe2bc21c84b9013c27713c6506fcf6b/raw/d14794195594d482be25f59074bd8d5feda6aa32/install.sh
           if [ ${{ matrix.arch }} == "x86" ]
@@ -57,6 +59,52 @@ jobs:
           echo "Generate X86 Kernel Module File"
           mkdir -p ${{ matrix.image-name }}-modules_install && make modules_install INSTALL_MOD_PATH=${{ matrix.image-name }}-modules_install
           cp install.sh ${{ matrix.image-name }}-modules_install/
+          rm -rf ${{ matrix.image-name }}-modules_install/lib/modules/$var4-WSL2-STABLE+/build
+          mkdir -p ${{ matrix.image-name }}-modules_install/lib/modules/$var4-WSL2-STABLE+/build
+          export builddir=${{ matrix.image-name }}-modules_install/lib/modules/$var4-WSL2-STABLE+/build
+          install -Dt "$builddir" -m644 Makefile Module.symvers System.map vmlinux
+          install -Dt "$builddir/kernel" -m644 kernel/Makefile
+          install -Dt "$builddir/arch/x86" -m644 arch/x86/Makefile
+          cp -t "$builddir" -a scripts
+          install -Dt "$builddir/tools/objtool" tools/objtool/objtool
+          install -Dt "$builddir/tools/bpf/resolve_btfids" tools/bpf/resolve_btfids/resolve_btfids
+          cp -t "$builddir" -a include
+          cp -t "$builddir/arch/x86" -a arch/x86/include
+          install -Dt "$builddir/arch/x86/kernel" -m644 arch/x86/kernel/asm-offsets.s
+          install -Dt "$builddir/drivers/md" -m644 drivers/md/*.h
+          install -Dt "$builddir/net/mac80211" -m644 net/mac80211/*.h
+          install -Dt "$builddir/drivers/media/i2c" -m644 drivers/media/i2c/msp3400-driver.h
+          install -Dt "$builddir/drivers/media/usb/dvb-usb" -m644 drivers/media/usb/dvb-usb/*.h
+          install -Dt "$builddir/drivers/media/dvb-frontends" -m644 drivers/media/dvb-frontends/*.h
+          install -Dt "$builddir/drivers/media/tuners" -m644 drivers/media/tuners/*.h
+          install -Dt "$builddir/drivers/iio/common/hid-sensors" -m644 drivers/iio/common/hid-sensors/*.h
+          find . -name 'Kconfig*' -exec install -Dm644 {} "$builddir/{}" \;
+          export arch
+          for arch in "$builddir"/arch/*/; do
+            [[ $arch = */x86/ ]] && continue
+            echo "Removing $(basename "$arch")"
+            rm -r "$arch"
+          done
+          find -L "$builddir" -type l -printf 'Removing %P\n' -delete
+          find "$builddir" -type f -name '*.o' -printf 'Removing %P\n' -delete
+          export file
+          while read -rd '' file; do
+            case "$(file -Sib "$file")" in
+             application/x-sharedlib\;*)
+              strip -v $STRIP_SHARED "$file" ;;
+             application/x-archive\;*)
+              strip -v $STRIP_STATIC "$file" ;;
+             application/x-executable\;*)
+              strip -v $STRIP_BINARIES "$file" ;;
+             application/x-pie-executable\;*)
+              strip -v $STRIP_SHARED "$file" ;;
+            esac
+          done < <(find "$builddir" -type f -perm -u+x ! -name vmlinux -print0)
+          strip -v $STRIP_STATIC "$builddir/vmlinux"
+          rm -rf ${{ matrix.image-name }}-modules_install/lib/modules/$var4-WSL2-STABLE+/build/Documentation
+          cp -r Documentation ${{ matrix.image-name }}-modules_install/lib/modules/$var4-WSL2-STABLE+/build/Documentation
+          mkdir -p ${{ matrix.image-name }}-modules_install/src
+          ln -sr "$builddir" "${{ matrix.image-name }}-modules_install/src/$var4-WSL2-STABLE+"
           tar -czf ${{ matrix.image-name }}-modules_install.tar.gz ${{ matrix.image-name }}-modules_install && mv ${{ matrix.image-name }}-modules_install.tar.gz ../
           else
           echo "Generate ARM64 Kernel Module Package"
