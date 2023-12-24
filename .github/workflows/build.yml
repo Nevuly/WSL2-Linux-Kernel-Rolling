@@ -32,25 +32,40 @@ jobs:
         run: |
           git clone https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling.git --depth 1 -b $TAG_VERSION linux
 
-      - name: Build Kernel
+      - name: Build WSL2 Kernel
         run: |
           cd linux
           if [ ${{ matrix.arch }} == "x86" ]
           then
-          echo "Build X86 Kernel"
+          echo "Build X86_64 Kernel"
           make KCONFIG_CONFIG=arch/x86/configs/config-wsl-x86 -j$(echo `nproc` + 1 | bc)
-          cp arch/x86/boot/bzImage ../${{ matrix.image-name }}
-          mkdir -p ${{ matrix.image-name }}-modules_install && make modules_install INSTALL_MOD_PATH=${{ matrix.image-name }}-modules_install
-          tar -czf ${{ matrix.image-name }}-modules_install.tar.gz ${{ matrix.image-name }}-modules_install && mv ${{ matrix.image-name }}-modules_install.tar.gz ../
           else
           echo "Build ARM64 Kernel"
           export ARCH=arm64 && export CROSS_COMPILE=aarch64-linux-gnu-
           make KCONFIG_CONFIG=arch/arm64/configs/config-wsl-arm64 -j$(echo `nproc` + 1 | bc)
-          cp arch/arm64/boot/Image ../${{ matrix.image-name }}
+          fi
+
+      - name: Generate Kernel Module File
+        run: |
+          cd linux
+          echo "Download Kernel Module Installer"
+          wget https://gist.githubusercontent.com/Nevuly/4fe2bc21c84b9013c27713c6506fcf6b/raw/d14794195594d482be25f59074bd8d5feda6aa32/install.sh
+          if [ ${{ matrix.arch }} == "x86" ]
+          then
+          echo "Generate X86 Kernel Module File"
           mkdir -p ${{ matrix.image-name }}-modules_install && make modules_install INSTALL_MOD_PATH=${{ matrix.image-name }}-modules_install
+          cp install.sh ${{ matrix.image-name }}-modules_install/
+          tar -czf ${{ matrix.image-name }}-modules_install.tar.gz ${{ matrix.image-name }}-modules_install && mv ${{ matrix.image-name }}-modules_install.tar.gz ../
+          else
+          echo "Generate ARM64 Kernel Module Package"
+          mkdir -p ${{ matrix.image-name }}-modules_install && make modules_install INSTALL_MOD_PATH=${{ matrix.image-name }}-modules_install
+          cp install.sh ${{ matrix.image-name }}-modules_install/
           tar -czf ${{ matrix.image-name }}-modules_install.tar.gz ${{ matrix.image-name }}-modules_install && mv ${{ matrix.image-name }}-modules_install.tar.gz ../
           fi
-          cd .. && sha256sum ${{ matrix.image-name }} > ${{ matrix.image-name }}.sha256
+
+      - name: Generate SHA256 Checksum
+        run: |
+          sha256sum ${{ matrix.image-name }} > ${{ matrix.image-name }}.sha256
           sha256sum ${{ matrix.image-name }}-modules_install.tar.gz > ${{ matrix.image-name }}-modules_install.sha256
 
       - name: Upload Kernel Images
@@ -87,6 +102,10 @@ jobs:
             **How to apply this kernel?**
             Before you try to apply this kernel, You **MUST** shutdown your WSL. (wsl --shutdown)
             Check this [document](https://learn.microsoft.com/en-us/windows/wsl/wsl-config).
+
+            **How to install kernel module in WSL2?**
+            The installation script is already contained within the kernel module file.
+            You can run **install.sh** file with root.
 
             **This kernel built on ArchLinux.**
 
