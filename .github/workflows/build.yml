@@ -51,7 +51,7 @@ jobs:
         run: |
           cd linux
           echo "Download Kernel Module Installer"
-          wget https://gist.githubusercontent.com/Nevuly/4fe2bc21c84b9013c27713c6506fcf6b/raw/d14794195594d482be25f59074bd8d5feda6aa32/install.sh
+          wget https://gist.githubusercontent.com/Nevuly/4fe2bc21c84b9013c27713c6506fcf6b/raw/350ccecee1ca0b0691a40bc4ef64fcba4374f0d3/install-stable.sh
           if [ ${{ matrix.arch }} == "x86" ]
           then
           echo "Generate X86 Kernel Module File"
