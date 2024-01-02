@@ -56,12 +56,12 @@ jobs:
           then
           echo "Generate X86 Kernel Module File"
           mkdir -p ${{ matrix.image-name }}-modules_install && make modules_install INSTALL_MOD_PATH=${{ matrix.image-name }}-modules_install
-          cp install.sh ${{ matrix.image-name }}-modules_install/
+          cp install-stable.sh ${{ matrix.image-name }}-modules_install/
           tar -czf ${{ matrix.image-name }}-modules_install.tar.gz ${{ matrix.image-name }}-modules_install && mv ${{ matrix.image-name }}-modules_install.tar.gz ../
           else
           echo "Generate ARM64 Kernel Module Package"
           mkdir -p ${{ matrix.image-name }}-modules_install && make modules_install INSTALL_MOD_PATH=${{ matrix.image-name }}-modules_install
-          cp install.sh ${{ matrix.image-name }}-modules_install/
+          cp install-stable.sh ${{ matrix.image-name }}-modules_install/
           tar -czf ${{ matrix.image-name }}-modules_install.tar.gz ${{ matrix.image-name }}-modules_install && mv ${{ matrix.image-name }}-modules_install.tar.gz ../
           fi
 
