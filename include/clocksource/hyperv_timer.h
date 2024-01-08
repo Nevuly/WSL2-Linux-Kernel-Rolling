@@ -15,14 +15,21 @@
 
 #include <linux/clocksource.h>
 #include <linux/math64.h>
+
+#ifdef CONFIG_X86
 #include <asm/hyperv-tlfs.h>
+#else
+#include <asm/mshyperv.h>
+#endif
 
 #define HV_MAX_MAX_DELTA_TICKS 0xffffffff
 #define HV_MIN_DELTA_TICKS 1
 
 #ifdef CONFIG_HYPERV_TIMER
 
+#ifdef CONFIG_X86
 #include <asm/hyperv_timer.h>
+#endif
 
 /* Routines called by the VMbus driver */
 extern int hv_stimer_alloc(bool have_percpu_irqs);
