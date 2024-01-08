@@ -1,0 +1,117 @@
+name: Stable Kernel CI
+
+on:
+  push:
+    tags:
+      - 'linux-wsl-stable-6.7.[0-9]+'
+
+run-name: Stable Release Build ${{ github.ref_name }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: nevuly/nevuly-dev-base:arch
+    strategy:
+      matrix:
+        include:
+          - arch: x86
+            image-name: bzImage-x86_64
+          - arch: arm64
+            image-name: Image-arm64
+    env:
+      TAG_VERSION: '${{ github.ref_name }}'
+
+    steps:
+      - name: Trust this directory
+        run: git config --global --add safe.directory /__w/WSL2-Linux-Kernel-Rolling/WSL2-Linux-Kernel-Rolling
+
+      - uses: actions/checkout@main
+
+      - name: Download Kernel
+        shell: bash
+        run: |
+          git clone https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling.git --depth 1 -b $TAG_VERSION linux
+
+      - name: Build WSL2 Kernel
+        run: |
+          cd linux
+          if [ ${{ matrix.arch }} == "x86" ]
+          then
+          echo "Build X86_64 Kernel"
+          make KCONFIG_CONFIG=arch/x86/configs/config-wsl-x86 -j$(echo `nproc` + 1 | bc)
+          cp arch/x86/boot/bzImage ../${{ matrix.image-name }}
+          else
+          echo "Build ARM64 Kernel"
+          export ARCH=arm64 && export CROSS_COMPILE=aarch64-linux-gnu-
+          make KCONFIG_CONFIG=arch/arm64/configs/config-wsl-arm64 -j$(echo `nproc` + 1 | bc)
+          cp arch/arm64/boot/Image ../${{ matrix.image-name }}
+          fi
+
+      - name: Generate Kernel Module File
+        run: |
+          cd linux
+          echo "Download Kernel Module Installer"
+          wget https://gist.githubusercontent.com/Nevuly/4fe2bc21c84b9013c27713c6506fcf6b/raw/350ccecee1ca0b0691a40bc4ef64fcba4374f0d3/install-stable.sh
+          if [ ${{ matrix.arch }} == "x86" ]
+          then
+          echo "Generate X86 Kernel Module File"
+          mkdir -p ${{ matrix.image-name }}-modules_install && make modules_install INSTALL_MOD_PATH=${{ matrix.image-name }}-modules_install
+          cp install-stable.sh ${{ matrix.image-name }}-modules_install/
+          tar -czf ${{ matrix.image-name }}-modules_install.tar.gz ${{ matrix.image-name }}-modules_install && mv ${{ matrix.image-name }}-modules_install.tar.gz ../
+          else
+          echo "Generate ARM64 Kernel Module Package"
+          mkdir -p ${{ matrix.image-name }}-modules_install && make modules_install INSTALL_MOD_PATH=${{ matrix.image-name }}-modules_install
+          cp install-stable.sh ${{ matrix.image-name }}-modules_install/
+          tar -czf ${{ matrix.image-name }}-modules_install.tar.gz ${{ matrix.image-name }}-modules_install && mv ${{ matrix.image-name }}-modules_install.tar.gz ../
+          fi
+
+      - name: Generate SHA256 Checksum
+        run: |
+          sha256sum ${{ matrix.image-name }} > ${{ matrix.image-name }}.sha256
+          sha256sum ${{ matrix.image-name }}-modules_install.tar.gz > ${{ matrix.image-name }}-modules_install.sha256
+
+      - name: Upload Kernel Images
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.image-name }}
+          path: |
+            ${{ matrix.image-name }}
+            ${{ matrix.image-name }}.sha256
+            ${{ matrix.image-name }}-modules_install.tar.gz
+            ${{ matrix.image-name }}-modules_install.sha256
+
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    env:
+      TAG_VERSION: '${{ github.ref_name }}'
+
+    steps:
+      - uses: actions/checkout@main
+      - uses: actions/download-artifact@v3
+        with:
+          path: release_images/
+
+      - name: Release Kernel
+        uses: softprops/action-gh-release@v1
+        with:
+          name: ${{ env.TAG_VERSION }}
+          tag_name: ${{ env.TAG_VERSION }}
+          body: |
+            **NOTICE**
+            ARM64 kernel has not been tested. If you have any issues, please leave an issue on the Issues tab!
+
+            **How to apply this kernel?**
+            Before you try to apply this kernel, You **MUST** shutdown your WSL. (wsl --shutdown)
+            Check this [document](https://learn.microsoft.com/en-us/windows/wsl/wsl-config).
+
+            **How to install kernel module in WSL2?**
+            The installation script is already contained within the kernel module file.
+            You can run **install.sh** file with root.
+
+            **This kernel built on ArchLinux.**
+
+          files: |
+            release_images/*/*
+          token: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
+          fail_on_unmatched_files: true
