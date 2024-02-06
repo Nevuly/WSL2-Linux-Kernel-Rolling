@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm64 6.7.3 Kernel Configuration
+# Linux/arm64 6.7.4 Kernel Configuration
 #
 CONFIG_CC_VERSION_TEXT="aarch64-linux-gnu-gcc (GCC) 13.2.0"
 CONFIG_CC_IS_GCC=y
@@ -2620,7 +2620,6 @@ CONFIG_BCMA_POSSIBLE=y
 # CONFIG_MFD_SKY81452 is not set
 # CONFIG_MFD_STMPE is not set
 # CONFIG_MFD_SYSCON is not set
-# CONFIG_MFD_TI_AM335X_TSCADC is not set
 # CONFIG_MFD_LP3943 is not set
 # CONFIG_MFD_LP8788 is not set
 # CONFIG_MFD_TI_LMU is not set
