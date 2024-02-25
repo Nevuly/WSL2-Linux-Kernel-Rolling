@@ -52,7 +52,7 @@ jobs:
           echo "Kernel verison: $version"
           cd linux
           echo "Download kernel modules package installer script"
-          wget https://gist.githubusercontent.com/Nevuly/cf1d17db72cdfde6ed149461eef0215c/raw/8d16f84a8b3a7b815dd13c0af8768cd6ef31712c/modules-install.sh
+          wget https://gist.githubusercontent.com/Nevuly/cf1d17db72cdfde6ed149461eef0215c/raw/b1cfb4382e1dcf58c9728b39865942cdf587f63c/modules-install.sh
           chmod 775 modules-install.sh
           echo "Generate kernel modules tarball"
           mkdir -p ${{ matrix.image-name }}-modules_install && make modules_install INSTALL_MOD_PATH=${{ matrix.image-name }}-modules_install
@@ -69,7 +69,7 @@ jobs:
           echo "Kernel verison: $version"
           cd linux
           echo "Download kernel optionals package installer script"
-          wget https://gist.githubusercontent.com/Nevuly/b203682442ba2c6cf4cad3b35afb6f4b/raw/6a04daf739a983f1a41099effbeb398f04a63145/optionals-install.sh
+          wget https://gist.githubusercontent.com/Nevuly/b203682442ba2c6cf4cad3b35afb6f4b/raw/72cffc2e83a6c9298667a79c91cfe53bbcfcc6e1/optionals-install.sh
           chmod 775 optionals-install.sh
           echo "Generate kernel headers tarball"
           mkdir -p ${{ matrix.image-name }}-optional_install/build
