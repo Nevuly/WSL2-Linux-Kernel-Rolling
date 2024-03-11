@@ -170,7 +170,7 @@ void signal_host_cpu_event(struct dxghostevent *eventhdr)
 	}
 	if (event->cpu_event) {
 		DXG_TRACE("signal cpu event");
-		eventfd_signal(event->cpu_event, 1);
+		eventfd_signal(event->cpu_event);
 		if (event->destroy_after_signal)
 			eventfd_ctx_put(event->cpu_event);
 	} else {
