@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm64 6.8.8 Kernel Configuration
+# Linux/arm64 6.8.9 Kernel Configuration
 #
 CONFIG_CC_VERSION_TEXT="aarch64-linux-gnu-gcc (GCC) 13.2.0"
 CONFIG_CC_IS_GCC=y
@@ -583,6 +583,7 @@ CONFIG_ACPI_PPTT=y
 CONFIG_ACPI_PRMT=y
 CONFIG_HAVE_KVM=y
 # CONFIG_VIRTUALIZATION is not set
+CONFIG_CPU_MITIGATIONS=y
 
 #
 # General architecture-dependent options
