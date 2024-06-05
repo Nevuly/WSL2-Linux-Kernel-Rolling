@@ -194,14 +194,8 @@ jobs:
             Before you try to apply this kernel, You **MUST** shutdown your WSL. (wsl --shutdown)
             Check this [document](https://learn.microsoft.com/en-us/windows/wsl/wsl-config).
 
-            **How to install kernel module package in WSL2?**
-            The installation script is already contained within the kernel module package tarball.
-            You can run **modules-install.sh** file with root.
-
-            **How to install kernel optionals package in WSL2? (Optional)**
-            The installation script is already contained within the kernel optionals package tarball.
-            It included kernel headers and kernel documentations.
-            You can run **optionals-install.sh** file with root.
+            **How to install kernel module and optional packages in WSL2?**
+            Please check this [guideline](https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/wiki#kernel-modules-and-kernel-headers-installation-guide).
 
             **This kernel built on ArchLinux.**
 
