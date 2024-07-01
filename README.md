@@ -50,6 +50,11 @@ as follows:
 Please see the documentation on the [.wslconfig configuration
 file][install-inst] for information on using a custom built kernel.
 
+## Credits
+ * The Linux community who created a awesome kernel.
+ * Microsoft which produced WSL2 and dxgkrnl patches.
+ * [justinkb (Paul Mulders)][justinkb] helped when docker desktop can't run correctly.
+
 [wsl2-kernel-6.9]: https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/tree/wsl-6.9-rolling
 [wsl2-kernel-rolling]: https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling
 [about-wsl2]: https://docs.microsoft.com/en-us/windows/wsl/about#what-is-wsl-2
@@ -58,3 +63,4 @@ file][install-inst] for information on using a custom built kernel.
 [issue]: https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/issues
 [pr]: https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/pulls
 [install-inst]: https://docs.microsoft.com/en-us/windows/wsl/wsl-config#configure-global-options-with-wslconfig
+[justinkb]: https://github.com/justinkb
