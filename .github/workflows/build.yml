@@ -86,6 +86,7 @@ jobs:
           if [ ${{ matrix.arch }} == "x86" ]
           then
           install -Dt "$optional_path/tools/objtool" tools/objtool/objtool
+          install -Dt "$optional_path/tools/bpf/resolve_btfids" tools/bpf/resolve_btfids/resolve_btfids
           fi
           cp -t "$optional_path" -a include
           if [ ${{ matrix.arch }} == "x86" ]
