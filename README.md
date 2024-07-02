@@ -60,7 +60,7 @@ file][install-inst] for information on using a custom built kernel.
 [about-wsl2]: https://docs.microsoft.com/en-us/windows/wsl/about#what-is-wsl-2
 [gh-actions]: https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/actions
 [kernel-stable]: https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/log/?h=linux-6.9.y
-[issue]: https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/issues
+[issue]: https://github.com/Nevuly/WSL2-Rolling-Kernel-Issue/issues
 [pr]: https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/pulls
 [install-inst]: https://docs.microsoft.com/en-us/windows/wsl/wsl-config#configure-global-options-with-wslconfig
 [justinkb]: https://github.com/justinkb
