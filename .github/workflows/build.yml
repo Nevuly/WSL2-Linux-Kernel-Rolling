@@ -52,7 +52,7 @@ jobs:
           echo "Kernel verison: $version"
           cd linux
           echo "Download kernel modules package installer script"
-          wget https://gist.githubusercontent.com/Nevuly/cf1d17db72cdfde6ed149461eef0215c/raw/08a874741c5ee4ccf02009a6aa0ce0f424f446d4/modules-install.sh
+          wget https://gist.githubusercontent.com/Nevuly/cf1d17db72cdfde6ed149461eef0215c/raw/e8a4fb449aa7606377a789bcc08c7eb667296d18/modules-install.sh
           chmod 775 modules-install.sh
           echo "Generate kernel modules tarball"
           mkdir -p ${{ matrix.image-name }}-modules_install && make modules_install INSTALL_MOD_PATH=${{ matrix.image-name }}-modules_install
