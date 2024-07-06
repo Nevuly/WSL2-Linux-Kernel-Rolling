@@ -189,7 +189,7 @@ jobs:
           tag_name: ${{ env.TAG_VERSION }}
           body: |
             **NOTICE**
-            ARM64 kernel has not been tested. If you have any issues, please leave an issue on the Issues tab!
+            ARM64 kernel has not been tested. If you have any issues, please leave an issue on the [Issues tab](https://github.com/Nevuly/WSL2-Rolling-Kernel-Issue/issues)!
 
             **How to apply this kernel?**
             Before you try to apply this kernel, You **MUST** shutdown your WSL. (wsl --shutdown)
