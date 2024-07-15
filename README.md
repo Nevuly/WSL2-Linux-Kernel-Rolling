@@ -1,15 +1,12 @@
 # Rolling Release Stable Kernel for WSL2
 
-[![Stable Kernel CI](https://img.shields.io/github/actions/workflow/status/Nevuly/WSL2-Linux-Kernel-Rolling/build.yml?label=github%20actions%20build&logo=github-actions&logoColor=%23FFFFFF&style=for-the-badge&labelColor=%23000000)](https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/actions/workflows/build.yml)
-[![Release](https://img.shields.io/github/v/release/Nevuly/WSL2-Linux-Kernel-Rolling?display_name=tag&label=LATEST&logo=Linux&logoColor=%23FFFFFF&style=for-the-badge&labelColor=%23000000)](https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/releases/latest)
-
 Maintainer: Yang Jeong Hun (Nevuly)
 
 ## Current Kernel Status
 
 | Kernel Version | Status |
 |:--------------:|:------:|
-| [Linux 6.9.x][wsl2-kernel-6.9] | Stable Support |
+| [Linux 6.9.x][wsl2-kernel-6.9] | End Of Life |
 
 ## Introduction
 
@@ -50,12 +47,7 @@ as follows:
 Please see the documentation on the [.wslconfig configuration
 file][install-inst] for information on using a custom built kernel.
 
-## Credits
- * The Linux community who created a awesome kernel.
- * Microsoft which produced WSL2 and dxgkrnl patches.
- * [justinkb (Paul Mulders)][justinkb] helped when docker desktop can't run correctly.
-
-[wsl2-kernel-6.9]: https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/tree/wsl-6.9-rolling
+[wsl2-kernel-6.9]: https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/tree/wsl-6.9-rolling-eol
 [wsl2-kernel-rolling]: https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling
 [about-wsl2]: https://docs.microsoft.com/en-us/windows/wsl/about#what-is-wsl-2
 [gh-actions]: https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/actions
@@ -63,4 +55,3 @@ file][install-inst] for information on using a custom built kernel.
 [issue]: https://github.com/Nevuly/WSL2-Rolling-Kernel-Issue/issues
 [pr]: https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/pulls
 [install-inst]: https://docs.microsoft.com/en-us/windows/wsl/wsl-config#configure-global-options-with-wslconfig
-[justinkb]: https://github.com/justinkb
