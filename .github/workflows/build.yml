@@ -76,8 +76,11 @@ jobs:
           tag_name: ${{ env.TAG_VERSION }}
           body: |
             **NOTICE**
+            * This version not included kernel modules, headers, docs packages temporarily. More information is [here](https://github.com/Nevuly/WSL2-Rolling-Kernel-Issue/issues/22).
+            * If you use `Docker Desktop`, You must install kernel modules in `docker-desktop` WSL2 image. More information is [here](https://github.com/Nevuly/WSL2-Rolling-Kernel-Issue/issues/21#issuecomment-2293228925).
+
+            **WARNING**
             ARM64 kernel has not been tested. If you have any issues, please leave an issue on the [Issues tab](https://github.com/Nevuly/WSL2-Rolling-Kernel-Issue/issues)!
-            This version not included kernel modules and kernel optionals temporarily.
 
             **How to apply this kernel?**
             Before you try to apply this kernel, You **MUST** shutdown your WSL. (wsl --shutdown)
