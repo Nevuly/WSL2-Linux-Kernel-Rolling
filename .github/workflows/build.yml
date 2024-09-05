@@ -12,12 +12,12 @@ jobs:
     runs-on: ubuntu-latest
     container: nevuly/nevuly-dev-base:arch
     outputs:
-      X86_IMAGE_SHA: ${{ steps.gen-sha3-512.outputs.X86_IMAGE_SHA }}
-      X86_MODULE_SHA: ${{ steps.gen-sha3-512.outputs.X86_MODULE_SHA }}
-      X86_OPTIONAL_SHA: ${{ steps.gen-sha3-512.outputs.X86_OPTIONAL_SHA }}
-      ARM64_IMAGE_SHA: ${{ steps.gen-sha3-512.outputs.ARM64_IMAGE_SHA }}
-      ARM64_MODULE_SHA: ${{ steps.gen-sha3-512.outputs.ARM64_MODULE_SHA }}
-      ARM64_OPTIONAL_SHA: ${{ steps.gen-sha3-512.outputs.ARM64_OPTIONAL_SHA }}
+      X86_IMAGE_SHA: ${{ steps.gen-sha-256.outputs.X86_IMAGE_SHA }}
+      X86_MODULE_SHA: ${{ steps.gen-sha-256.outputs.X86_MODULE_SHA }}
+      X86_OPTIONAL_SHA: ${{ steps.gen-sha-256.outputs.X86_OPTIONAL_SHA }}
+      ARM64_IMAGE_SHA: ${{ steps.gen-sha-256.outputs.ARM64_IMAGE_SHA }}
+      ARM64_MODULE_SHA: ${{ steps.gen-sha-256.outputs.ARM64_MODULE_SHA }}
+      ARM64_OPTIONAL_SHA: ${{ steps.gen-sha-256.outputs.ARM64_OPTIONAL_SHA }}
     strategy:
       matrix:
         include:
@@ -157,21 +157,21 @@ jobs:
           tar -czf ${{ matrix.image-name }}-optional_install.tar.gz ${{ matrix.image-name }}-optional_install && mv ${{ matrix.image-name }}-optional_install.tar.gz ../
           echo "Done"
 
-      - name: Generate SHA3-512 Checksum
-        id: gen-sha3-512
+      - name: Generate SHA-256 Checksum
+        id: gen-sha-256
         run: |
           if [ ${{ matrix.arch }} == "x86" ]
           then
-          read -r x86ImageSHA rest <<< "$(rhash --sha3-512 ${{ matrix.image-name }})"
-          read -r x86ModuleSHA rest <<< "$(rhash --sha3-512 ${{ matrix.image-name }}-modules_install.tar.gz)"
-          read -r x86OptionalSHA rest <<< "$(rhash --sha3-512 ${{ matrix.image-name }}-optional_install.tar.gz)"
+          read -r x86ImageSHA rest <<< "$(sha256sum ${{ matrix.image-name }})"
+          read -r x86ModuleSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-modules_install.tar.gz)"
+          read -r x86OptionalSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-optional_install.tar.gz)"
           echo "X86_IMAGE_SHA=$x86ImageSHA" >> $GITHUB_OUTPUT
           echo "X86_MODULE_SHA=$x86ModuleSHA" >> $GITHUB_OUTPUT
           echo "X86_OPTIONAL_SHA=$x86OptionalSHA" >> $GITHUB_OUTPUT
           else
-          read -r arm64ImageSHA rest <<< "$(rhash --sha3-512 ${{ matrix.image-name }})"
-          read -r arm64ModuleSHA rest <<< "$(rhash --sha3-512 ${{ matrix.image-name }}-modules_install.tar.gz)"
-          read -r arm64OptionalSHA rest <<< "$(rhash --sha3-512 ${{ matrix.image-name }}-optional_install.tar.gz)"
+          read -r arm64ImageSHA rest <<< "$(sha256sum ${{ matrix.image-name }})"
+          read -r arm64ModuleSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-modules_install.tar.gz)"
+          read -r arm64OptionalSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-optional_install.tar.gz)"
           echo "ARM64_IMAGE_SHA=$arm64ImageSHA" >> $GITHUB_OUTPUT
           echo "ARM64_MODULE_SHA=$arm64ModuleSHA" >> $GITHUB_OUTPUT
           echo "ARM64_OPTIONAL_SHA=$arm64OptionalSHA" >> $GITHUB_OUTPUT
@@ -217,7 +217,7 @@ jobs:
             ARM64 kernel has not been tested. If you have any issues, please leave an issue on the [Issues tab](https://github.com/Nevuly/WSL2-Rolling-Kernel-Issue/issues)!
 
             **Hash Information**
-            | File Name | SHA3-512 Checksum |
+            | File Name | SHA-256 Checksum |
             |:--------------:|:------:|
             | bzImage-x86_64 | ${{ env.X86_IMAGE_SHA }} |
             | bzImage-x86_64-modules_install.tar.gz | ${{ env.X86_MODULE_SHA }} |
