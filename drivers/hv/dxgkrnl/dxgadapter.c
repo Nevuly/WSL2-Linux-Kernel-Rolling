@@ -15,6 +15,7 @@
 #include <linux/hyperv.h>
 #include <linux/pagemap.h>
 #include <linux/eventfd.h>
+#include <linux/vmalloc.h>
 
 #include "dxgkrnl.h"
 
