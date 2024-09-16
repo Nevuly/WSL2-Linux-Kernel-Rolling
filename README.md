@@ -1,15 +1,12 @@
 # Rolling Release Stable Kernel for WSL2
 
-[![Stable Kernel CI](https://img.shields.io/github/actions/workflow/status/Nevuly/WSL2-Linux-Kernel-Rolling/build.yml?label=github%20actions%20build&logo=github-actions&logoColor=%23FFFFFF&style=for-the-badge&labelColor=%23000000)](https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/actions/workflows/build.yml)
-[![Release](https://img.shields.io/github/v/release/Nevuly/WSL2-Linux-Kernel-Rolling?display_name=tag&label=LATEST&logo=Linux&logoColor=%23FFFFFF&style=for-the-badge&labelColor=%23000000)](https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/releases/latest)
-
 Maintainer: Yang Jeong Hun (Nevuly)
 
 ## Current Kernel Status
 
 | Kernel Version | Status |
 |:--------------:|:------:|
-| [Linux 6.10.x][wsl2-kernel-6.10] | Stable Support |
+| [Linux 6.10.x][wsl2-kernel-6.10] | End Of Life |
 
 ## Introduction
 
@@ -54,7 +51,7 @@ file][install-inst] for information on using a custom built kernel.
  * The Linux community who created a awesome kernel.
  * Microsoft which produced WSL2 and dxgkrnl patches.
 
-[wsl2-kernel-6.10]: https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/tree/wsl-6.10-rolling
+[wsl2-kernel-6.10]: https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/tree/wsl-6.10-rolling-eol
 [wsl2-kernel-rolling]: https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling
 [about-wsl2]: https://docs.microsoft.com/en-us/windows/wsl/about#what-is-wsl-2
 [gh-actions]: https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/actions
