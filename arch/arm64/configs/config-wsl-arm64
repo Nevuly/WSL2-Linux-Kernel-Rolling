@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm64 6.11.10 Kernel Configuration
+# Linux/arm64 6.11.11 Kernel Configuration
 #
 CONFIG_CC_VERSION_TEXT="aarch64-linux-gnu-gcc (GCC) 14.2.0"
 CONFIG_CC_IS_GCC=y
@@ -400,6 +400,7 @@ CONFIG_ARM64_VA_BITS_48=y
 # CONFIG_ARM64_VA_BITS_52 is not set
 CONFIG_ARM64_VA_BITS=48
 CONFIG_ARM64_PA_BITS_48=y
+# CONFIG_ARM64_PA_BITS_52 is not set
 CONFIG_ARM64_PA_BITS=48
 # CONFIG_CPU_BIG_ENDIAN is not set
 CONFIG_CPU_LITTLE_ENDIAN=y
@@ -3361,6 +3362,7 @@ CONFIG_ARM_ARCH_TIMER_OOL_WORKAROUND=y
 # CONFIG_FSL_ERRATUM_A008585 is not set
 # CONFIG_HISILICON_ERRATUM_161010101 is not set
 CONFIG_ARM64_ERRATUM_858921=y
+# CONFIG_ARM_TIMER_SP804 is not set
 # end of Clock Source drivers
 
 # CONFIG_MAILBOX is not set
