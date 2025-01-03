@@ -176,6 +176,7 @@ jobs:
           echo "ARM64_MODULE_SHA=$arm64ModuleSHA" >> $GITHUB_OUTPUT
           echo "ARM64_OPTIONAL_SHA=$arm64OptionalSHA" >> $GITHUB_OUTPUT
           fi
+          sha256sum ${{ matrix.image-name }} > ${{ matrix.image-name }}.sha256
           echo "Done"
 
       - name: Upload kernel Images
@@ -184,6 +185,7 @@ jobs:
           name: ${{ matrix.image-name }}
           path: |
             ${{ matrix.image-name }}
+            ${{ matrix.image-name }}.sha256
             ${{ matrix.image-name }}-modules_install.tar.gz
             ${{ matrix.image-name }}-optional_install.tar.gz
 
