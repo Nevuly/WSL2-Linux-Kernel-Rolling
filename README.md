@@ -6,29 +6,24 @@
 Maintainer: Yang Jeong Hun (Nevuly)
 
 ## Current Kernel Status
-
 | Kernel Version | Status |
 |:--------------:|:------:|
 | [Linux 6.12.x][wsl2-kernel-6.12] | Stable Support |
 
 ## Introduction
-
 The [WSL2-Linux-Kernel-Rolling][wsl2-kernel-rolling] repo contains the latest stable kernel source code and
 configuration files for the [WSL2][about-wsl2].
 
 This kernel is automatically built via [Github Actions][gh-actions] CI whenever a [newer stable kernel is released][kernel-stable].
 
 ## Reporting Bugs
-
 If you discover an issue relating to WSL or the WSL2 kernel, please report it on
 the [Issues tab][issue].
 
 ## Feature Requests
-
 If you want to fix a bug or add new features, Please use the [Pull Request][pr].
 
 ## Build Instructions
-
 Instructions for building WSL2 kernel with an Arch Linux distribution are
 as follows:
 
@@ -46,9 +41,76 @@ as follows:
    `$ sudo make modules_install`
 
 ## Install Instructions
+### Kernel Image
+#### Manual Installation
+1. Download kernel image from [releases page][releases-page].
+2. Place it to somewhere appropriate. (e.g. `D:\WSL2\Kernel\bzImage-x86_64`)
+3. Save the `.wslconfig` in current user's home directory with following content:
 
-Please see the documentation on the [.wslconfig configuration
-file][install-inst] for information on using a custom built kernel.
+```ini
+[wsl2]
+kernel=the\\path\\to\\bzImage
+; e.g.
+; kernel=D:\\WSL2\\Kernel\\bzImage-x86_64
+;
+; Note that all `\` should be escaped with `\\`.
+```
+
+4. Reboot your WSL2 and check kernel version using `uname -a` in WSL2 terminal.
+
+#### Install via Scoop
+**NOTICE**
+ * You have to reboot your WSL2 system using `wsl --shutdown` after install or update kernel with using scoop.
+
+[Scoop][scoop-page] is a command-line installer on windows. If you have scoop installed, then you can install this kernel with following commands:
+
+```bash
+scoop bucket add frostbite https://github.com/Nevuly/frostbite
+
+scoop install frostbite/wsl2-rolling-kernel-stable
+```
+
+Scoop will automatically set kernel in `.wslconfig`.
+
+#### Update Kernel Image
+ * If you installed kernel via scoop, you can use `scoop update *` in Powershell.
+ * If you installed kernel manually, download kernel image from [releases page][releases-page], and replace it.
+
+### Kernel Modules and Headers
+**NOTICE**
+ * This guide must be proceed in your WSL2 system.
+ * Kernel modules and kernel headers install are optional. If you don't need modules and headers, just skip this guide.
+
+#### Kernel Modules
+```bash
+# Please change latest version of kernel and select your architecture
+wget https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/releases/download/linux-wsl-stable-**x.x.x**/bzImage-**arch**-modules_install.tar.gz
+
+tar -xzvf bzImage-**arch**-modules_install.tar.gz
+
+cd bzImage-**arch**-modules_install
+
+sudo ./modules-install.sh
+```
+
+After execute installation script, please reboot your WSL2 system to load kernel modules correctly.
+
+#### Kernel Headers and Documents
+**NOTICE**
+ * Before install kernel headers and documents, you must install kernel modules first!
+
+```bash
+# Please change latest version of kernel and select your architecture
+wget https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/releases/download/linux-wsl-stable-**x.x.x**/bzImage-**arch**-optional_install.tar.gz
+
+tar -xzvf bzImage-**arch**-optional_install.tar.gz
+
+cd bzImage-**arch**-optional_install
+
+sudo ./optionals-install.sh
+```
+
+After execute installation script, please reboot your WSL2 system to load kernel headers and documents correctly.
 
 ## Credits
  * The Linux community who created a awesome kernel.
@@ -61,4 +123,5 @@ file][install-inst] for information on using a custom built kernel.
 [kernel-stable]: https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/log/?h=linux-6.12.y
 [issue]: https://github.com/Nevuly/WSL2-Rolling-Kernel-Issue/issues
 [pr]: https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/pulls
-[install-inst]: https://docs.microsoft.com/en-us/windows/wsl/wsl-config#configure-global-options-with-wslconfig
+[releases-page]: https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/releases/latest
+[scoop-page]: https://scoop.sh/
