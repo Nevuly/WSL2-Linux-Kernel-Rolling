@@ -16,30 +16,6 @@ configuration files for the [WSL2][about-wsl2].
 
 This kernel is automatically built via [Github Actions][gh-actions] CI whenever a [newer stable kernel is released][kernel-stable].
 
-## Reporting Bugs
-If you discover an issue relating to WSL or the WSL2 kernel, please report it on
-the [Issues tab][issue].
-
-## Feature Requests
-If you want to fix a bug or add new features, Please use the [Pull Request][pr].
-
-## Build Instructions
-Instructions for building WSL2 kernel with an Arch Linux distribution are
-as follows:
-
-1. Install the build dependencies (Arch Linux):  
-   `$ sudo pacman -S aarch64-linux-gnu-gcc bc bison curl flex gcc git pahole python unzip wget zip`
-
-2. Build the kernel using the WSL2 kernel configuration (x86):  
-   `$ make KCONFIG_CONFIG=arch/x86/configs/config-wsl-x86`
-
-3. Build the kernel using the WSL2 kernel configuration (arm64):  
-   `$ export ARCH=arm64 && export CROSS_COMPILE=aarch64-linux-gnu-`  
-   `$ make KCONFIG_CONFIG=arch/arm64/configs/config-wsl-arm64`
-
-4. Save the module to a separate folder (Optional. Only for local build):  
-   `$ sudo make modules_install`
-
 ## Install Instructions
 ### Kernel Image
 #### Manual Installation
@@ -111,6 +87,30 @@ sudo ./optionals-install.sh
 ```
 
 After execute installation script, please reboot your WSL2 system to load kernel headers and documents correctly.
+
+## Reporting Bugs
+If you discover an issue relating to WSL or the WSL2 kernel, please report it on
+the [Issues tab][issue].
+
+## Feature Requests
+If you want to fix a bug or add new features, Please use the [Pull Request][pr].
+
+## Build Instructions
+Instructions for building WSL2 kernel with an Arch Linux distribution are
+as follows:
+
+1. Install the build dependencies (Arch Linux):  
+   `$ sudo pacman -S aarch64-linux-gnu-gcc bc bison curl flex gcc git pahole python unzip wget zip`
+
+2. Build the kernel using the WSL2 kernel configuration (x86):  
+   `$ make KCONFIG_CONFIG=arch/x86/configs/config-wsl-x86`
+
+3. Build the kernel using the WSL2 kernel configuration (arm64):  
+   `$ export ARCH=arm64 && export CROSS_COMPILE=aarch64-linux-gnu-`  
+   `$ make KCONFIG_CONFIG=arch/arm64/configs/config-wsl-arm64`
+
+4. Save the module to a separate folder (Optional. Only for local build):  
+   `$ sudo make modules_install`
 
 ## Credits
  * The Linux community who created a awesome kernel.
