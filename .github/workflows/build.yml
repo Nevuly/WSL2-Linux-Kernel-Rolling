@@ -207,7 +207,7 @@ jobs:
           path: release_images/
 
       - name: Release Kernel
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@master
         with:
           name: ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
