@@ -433,6 +433,8 @@ EXPORT_SYMBOL_GPL(hv_get_hypervisor_version);
 
 static void __init ms_hyperv_init_platform(void)
 {
+	union hv_hypervisor_version_info version;
+	unsigned int build = 0;
 	int hv_max_functions_eax;
 
 #ifdef CONFIG_PARAVIRT
@@ -462,6 +464,38 @@ static void __init ms_hyperv_init_platform(void)
 		 ms_hyperv.max_vp_index, ms_hyperv.max_lp_index);
 
 	hv_identify_partition_type();
+
+	/*
+	 * Host builds earlier than 22621 (Win 11 22H2) have a bug in the
+	 * invariant TSC feature that may result in the guest seeing a "slow"
+	 * TSC after host hibernation. This causes problems with synthetic
+	 * timer interrupts. In such a case, avoid the bug by assuming the
+	 * feature is not present.
+	 */
+	if (!hv_get_hypervisor_version(&version))
+		build = version.build_number;
+	if (build < 22621)
+		ms_hyperv.features &= ~HV_ACCESS_TSC_INVARIANT;
+
+	/*
+	 * Check CPU management privilege.
+	 *
+	 * To mirror what Windows does we should extract CPU management
+	 * features and use the ReservedIdentityBit to detect if Linux is the
+	 * root partition. But that requires negotiating CPU management
+	 * interface (a process to be finalized). For now, use the privilege
+	 * flag as the indicator for running as root.
+	 *
+	 * Hyper-V should never specify running as root and as a Confidential
+	 * VM. But to protect against a compromised/malicious Hyper-V trying
+	 * to exploit root behavior to expose Confidential VM memory, ignore
+	 * the root partition setting if also a Confidential VM.
+	 */
+	if ((ms_hyperv.priv_high & HV_CPU_MANAGEMENT) &&
+	    !(ms_hyperv.priv_high & HV_ISOLATION)) {
+		hv_root_partition = true;
+		pr_info("Hyper-V: running as root partition\n");
+	}
 
 	if (ms_hyperv.hints & HV_X64_HYPERV_NESTED) {
 		hv_nested = true;
