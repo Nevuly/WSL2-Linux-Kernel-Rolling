@@ -462,9 +462,14 @@ void hmgrtable_free_handle(struct hmgrtable *table, enum hmgrentry_type t,
 		 */
 		entry->next_free_index = HMGRTABLE_INVALID_INDEX;
 		entry->prev_free_index = table->free_handle_list_tail;
-		entry = &table->entry_table[table->free_handle_list_tail];
-		entry->next_free_index = i;
+		if (table->free_handle_list_tail != HMGRTABLE_INVALID_INDEX) {
+			entry = &table->entry_table[table->free_handle_list_tail];
+			entry->next_free_index = i;
+		}
 		table->free_handle_list_tail = i;
+		if (table->free_handle_list_head == HMGRTABLE_INVALID_INDEX) {
+			table->free_handle_list_head = i;
+		}
 	} else {
 		DXG_ERR("Invalid handle to free: %d %x", i, h.v);
 	}
