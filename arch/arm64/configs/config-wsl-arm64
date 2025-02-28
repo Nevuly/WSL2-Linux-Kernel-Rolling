@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm64 6.13.4 Kernel Configuration
+# Linux/arm64 6.13.5 Kernel Configuration
 #
 CONFIG_CC_VERSION_TEXT="aarch64-linux-gnu-gcc (GCC) 14.2.0"
 CONFIG_CC_IS_GCC=y
@@ -1816,7 +1816,6 @@ CONFIG_EFI_EARLYCON=y
 # CONFIG_EFI_COCO_SECRET is not set
 # end of EFI (Extensible Firmware Interface) Support
 
-# CONFIG_IMX_SCMI_MISC_DRV is not set
 CONFIG_ARM_PSCI_FW=y
 # CONFIG_ARM_PSCI_CHECKER is not set
 
@@ -3371,7 +3370,6 @@ CONFIG_DXGKRNL=y
 # CONFIG_STAGING is not set
 # CONFIG_GOLDFISH is not set
 # CONFIG_CHROME_PLATFORMS is not set
-# CONFIG_CZNIC_PLATFORMS is not set
 # CONFIG_MELLANOX_PLATFORM is not set
 # CONFIG_SURFACE_PLATFORMS is not set
 CONFIG_ARM64_PLATFORM_DEVICES=y
