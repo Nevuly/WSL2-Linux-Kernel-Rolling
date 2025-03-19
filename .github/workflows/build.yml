@@ -16,8 +16,10 @@ jobs:
     outputs:
       X86_IMAGE_SHA: ${{ steps.gen-sha-256.outputs.X86_IMAGE_SHA }}
       X86_ADDON_SHA: ${{ steps.gen-sha-256.outputs.X86_ADDON_SHA }}
+      X86_ADDON_VHDX_SHA: ${{ steps.gen-sha-256.outputs.X86_ADDON_VHDX_SHA }}
       ARM64_IMAGE_SHA: ${{ steps.gen-sha-256.outputs.ARM64_IMAGE_SHA }}
       ARM64_ADDON_SHA: ${{ steps.gen-sha-256.outputs.ARM64_ADDON_SHA }}
+      ARM64_ADDON_VHDX_SHA: ${{ steps.gen-sha-256.outputs.ARM64_ADDON_VHDX_SHA }}
     strategy:
       matrix:
         include:
@@ -136,6 +138,13 @@ jobs:
           cp -r Documentation $addon_path/Documentation
           echo "Done"
 
+      - name: Generate kernel additional package VHDX image
+        run: |
+          cd linux
+          sudo ./.github/scripts/gen_modules_vhdx.sh "$PWD/${{ matrix.image-name }}-addon_install" ${{ matrix.image-name }}-addon.vhdx
+          mv ${{ matrix.image-name }}-addon.vhdx ../
+          echo "Done"
+
       - name: Generate kernel additional package tarball
         run: |
           cd linux
@@ -152,15 +161,20 @@ jobs:
           then
           read -r x86ImageSHA rest <<< "$(sha256sum ${{ matrix.image-name }})"
           read -r x86AddonSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-addon_install.tar.gz)"
+          read -r x86AddonVHDXSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-addon.vhdx)"
           echo "X86_IMAGE_SHA=$x86ImageSHA" >> $GITHUB_OUTPUT
           echo "X86_ADDON_SHA=$x86AddonSHA" >> $GITHUB_OUTPUT
+          echo "X86_ADDON_VHDX_SHA=$x86AddonVHDXSHA" >> $GITHUB_OUTPUT
           else
           read -r arm64ImageSHA rest <<< "$(sha256sum ${{ matrix.image-name }})"
           read -r arm64AddonSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-addon_install.tar.gz)"
+          read -r arm64AddonVHDXSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-addon.vhdx)"
           echo "ARM64_IMAGE_SHA=$arm64ImageSHA" >> $GITHUB_OUTPUT
           echo "ARM64_ADDON_SHA=$arm64AddonSHA" >> $GITHUB_OUTPUT
+          echo "ARM64_ADDON_VHDX_SHA=$arm64AddonVHDXSHA" >> $GITHUB_OUTPUT
           fi
           sha256sum ${{ matrix.image-name }} > ${{ matrix.image-name }}.sha256
+          sha256sum ${{ matrix.image-name }}-addon.vhdx > ${{ matrix.image-name }}-addon.vhdx.sha256
           echo "Done"
 
       - name: Upload kernel Images
@@ -171,6 +185,8 @@ jobs:
             ${{ matrix.image-name }}
             ${{ matrix.image-name }}.sha256
             ${{ matrix.image-name }}-addon_install.tar.gz
+            ${{ matrix.image-name }}-addon.vhdx
+            ${{ matrix.image-name }}-addon.vhdx.sha256
 
   release:
     runs-on: ubuntu-latest
@@ -178,8 +194,10 @@ jobs:
     env:
       X86_IMAGE_SHA: ${{ needs.build.outputs.X86_IMAGE_SHA }}
       X86_ADDON_SHA: ${{ needs.build.outputs.X86_ADDON_SHA }}
+      X86_ADDON_VHDX_SHA: ${{ needs.build.outputs.X86_ADDON_VHDX_SHA }}
       ARM64_IMAGE_SHA: ${{ needs.build.outputs.ARM64_IMAGE_SHA }}
       ARM64_ADDON_SHA: ${{ needs.build.outputs.ARM64_ADDON_SHA }}
+      ARM64_ADDON_VHDX_SHA: ${{ needs.build.outputs.ARM64_ADDON_VHDX_SHA }}
 
     steps:
       - uses: actions/checkout@main
@@ -201,8 +219,10 @@ jobs:
             |:--------------:|:------:|
             | bzImage-x86_64 | ${{ env.X86_IMAGE_SHA }} |
             | bzImage-x86_64-addon_install.tar.gz | ${{ env.X86_ADDON_SHA }} |
+            | bzImage-x86_64-addon.vhdx | ${{ env.X86_ADDON_VHDX_SHA }} |
             | Image-arm64 | ${{ env.ARM64_IMAGE_SHA }} |
             | Image-arm64-addon_install.tar.gz | ${{ env.ARM64_ADDON_SHA }} |
+            | Image-arm64-addon.vhdx | ${{ env.ARM64_ADDON_VHDX_SHA }} |
 
             **How to apply this kernel?**
             Before you try to apply this kernel, You **MUST** shutdown your WSL. (wsl --shutdown)

@@ -5,20 +5,20 @@
 
 Maintainer: Yang Jeong Hun (Nevuly)
 
-## Current Kernel Status
+# Current Kernel Status
 | Kernel Version | Status |
 |:--------------:|:------:|
 | [Linux 6.13.x][wsl2-kernel-6.13] | Stable Support |
 
-## Introduction
+# Introduction
 The [WSL2-Linux-Kernel-Rolling][wsl2-kernel-rolling] repo contains the latest stable kernel source code and
 configuration files for the [WSL2][about-wsl2].
 
 This kernel is automatically built via [Github Actions][gh-actions] CI whenever a [newer stable kernel is released][kernel-stable].
 
-## Install Instructions
-### Kernel Image
-#### Manual Installation
+# Install Instructions
+## 1. Kernel Image
+### 1-1. Manual Installation
 1. Download kernel image from [releases page][releases-page].
 2. Place it to somewhere appropriate. (e.g. `D:\WSL2\Kernel\bzImage-x86_64`)
 3. Save the `.wslconfig` in current user's home directory with following content:
@@ -34,7 +34,7 @@ kernel=the\\path\\to\\bzImage
 
 4. Reboot your WSL2 and check kernel version using `uname -a` in WSL2 terminal.
 
-#### Install via Scoop
+### 1-2. Install via Scoop
 **NOTICE**
  * You have to reboot your WSL2 system using `wsl --shutdown` after install or update kernel with using scoop.
 
@@ -48,16 +48,18 @@ scoop install frostbite/wsl2-rolling-kernel-stable
 
 Scoop will automatically set kernel in `.wslconfig`.
 
-#### Update Kernel Image
+### 1-3. Update Kernel Image
  * If you installed kernel via scoop, you can use `scoop update *` in Powershell.
  * If you installed kernel manually, download kernel image from [releases page][releases-page], and replace it.
 
-### Kernel Additional Package
+## 2. Kernel Additional Package
 **NOTICE**
  * This guide must be proceed in your WSL2 system.
  * Kernel additional package is optional. If you don't need it, just skip this guide.
  * Additional package contains kernel modules, headers and documents.
+ * **If you try to use VHDX image or scoop, you must use WSL version 2.5.1 or later.**
 
+### 2-1. Install Additional Package in WSL2 Directly
 ```bash
 # Please change latest version of kernel and select your architecture
 wget https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/releases/download/linux-wsl-stable-**x.x.x**/bzImage-**arch**-addon_install.tar.gz
@@ -71,14 +73,46 @@ sudo ./addon-install.sh
 
 After execute installation script, please reboot your WSL2 system to load kernel modules correctly.
 
-## Reporting Bugs
+### 2-2. Install Additional Package using VHDX Image
+1. Download kernel additional package VHDX image from [releases page][releases-page].
+2. Place it to somewhere appropriate. (e.g. `D:\WSL2\Kernel\bzImage-x86_64-addon.vhdx`)
+3. Save the `.wslconfig` in current user's home directory with following content:
+
+```ini
+[wsl2]
+kernelModules=the\\path\\to\\bzImage-addon.vhdx
+; e.g.
+; kernelModules=D:\\WSL2\\Kernel\\bzImage-x86_64-addon.vhdx
+;
+; Note that all `\` should be escaped with `\\`.
+```
+
+### 2-3. Install Additional Package via Scoop
+**NOTICE**
+ * You have to reboot your WSL2 system using `wsl --shutdown` after install or update kernel with using scoop.
+
+[Scoop][scoop-page] is a command-line installer on windows. If you have scoop installed, then you can install this kernel with following commands:
+
+```bash
+scoop bucket add frostbite https://github.com/Nevuly/frostbite
+
+scoop install frostbite/wsl2-rolling-kernel-stable
+```
+
+Scoop will automatically set kernel in `.wslconfig`.
+
+### 2-4. Update Kernel Image
+ * If you installed kernel additional package via scoop, you can use `scoop update *` in Powershell.
+ * If you installed kernel additional package manually, please follow guide **2-1 or 2-2** section.
+
+# Reporting Bugs
 If you discover an issue relating to WSL or the WSL2 kernel, please report it on
 the [Issues tab][issue].
 
-## Feature Requests
+# Feature Requests
 If you want to fix a bug or add new features, Please use the [Pull Request][pr].
 
-## Build Instructions
+# Build Instructions
 Instructions for building WSL2 kernel with an Arch Linux distribution are
 as follows:
 
@@ -95,7 +129,7 @@ as follows:
 4. Save the module to a separate folder (Optional. Only for local build):  
    `$ sudo make modules_install`
 
-## Credits
+# Credits
  * The Linux community who created a awesome kernel.
  * Microsoft which produced WSL2 and dxgkrnl patches.
 
