@@ -10,7 +10,9 @@ run-name: Stable Release Build ${{ github.ref_name }}
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: nevuly/nevuly-dev-base:arch
+    container:
+      image: nevuly/nevuly-dev-base:arch
+      options: --privileged
     outputs:
       X86_IMAGE_SHA: ${{ steps.gen-sha-256.outputs.X86_IMAGE_SHA }}
       X86_MODULE_SHA: ${{ steps.gen-sha-256.outputs.X86_MODULE_SHA }}
