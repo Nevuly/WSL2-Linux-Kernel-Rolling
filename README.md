@@ -52,41 +52,24 @@ Scoop will automatically set kernel in `.wslconfig`.
  * If you installed kernel via scoop, you can use `scoop update *` in Powershell.
  * If you installed kernel manually, download kernel image from [releases page][releases-page], and replace it.
 
-### Kernel Modules and Headers
+### Kernel Additional Package
 **NOTICE**
  * This guide must be proceed in your WSL2 system.
- * Kernel modules and kernel headers install are optional. If you don't need modules and headers, just skip this guide.
+ * Kernel additional package is optional. If you don't need it, just skip this guide.
+ * Additional package contains kernel modules, headers and documents.
 
-#### Kernel Modules
 ```bash
 # Please change latest version of kernel and select your architecture
-wget https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/releases/download/linux-wsl-stable-**x.x.x**/bzImage-**arch**-modules_install.tar.gz
+wget https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/releases/download/linux-wsl-stable-**x.x.x**/bzImage-**arch**-addon_install.tar.gz
 
 tar -xzvf bzImage-**arch**-modules_install.tar.gz
 
 cd bzImage-**arch**-modules_install
 
-sudo ./modules-install.sh
+sudo ./addon-install.sh
 ```
 
 After execute installation script, please reboot your WSL2 system to load kernel modules correctly.
-
-#### Kernel Headers and Documents
-**NOTICE**
- * Before install kernel headers and documents, you must install kernel modules first!
-
-```bash
-# Please change latest version of kernel and select your architecture
-wget https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/releases/download/linux-wsl-stable-**x.x.x**/bzImage-**arch**-optional_install.tar.gz
-
-tar -xzvf bzImage-**arch**-optional_install.tar.gz
-
-cd bzImage-**arch**-optional_install
-
-sudo ./optionals-install.sh
-```
-
-After execute installation script, please reboot your WSL2 system to load kernel headers and documents correctly.
 
 ## Reporting Bugs
 If you discover an issue relating to WSL or the WSL2 kernel, please report it on

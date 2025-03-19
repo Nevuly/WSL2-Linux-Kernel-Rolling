@@ -15,11 +15,9 @@ jobs:
       options: --privileged
     outputs:
       X86_IMAGE_SHA: ${{ steps.gen-sha-256.outputs.X86_IMAGE_SHA }}
-      X86_MODULE_SHA: ${{ steps.gen-sha-256.outputs.X86_MODULE_SHA }}
-      X86_OPTIONAL_SHA: ${{ steps.gen-sha-256.outputs.X86_OPTIONAL_SHA }}
+      X86_ADDON_SHA: ${{ steps.gen-sha-256.outputs.X86_ADDON_SHA }}
       ARM64_IMAGE_SHA: ${{ steps.gen-sha-256.outputs.ARM64_IMAGE_SHA }}
-      ARM64_MODULE_SHA: ${{ steps.gen-sha-256.outputs.ARM64_MODULE_SHA }}
-      ARM64_OPTIONAL_SHA: ${{ steps.gen-sha-256.outputs.ARM64_OPTIONAL_SHA }}
+      ARM64_ADDON_SHA: ${{ steps.gen-sha-256.outputs.ARM64_ADDON_SHA }}
     strategy:
       matrix:
         include:
@@ -52,80 +50,69 @@ jobs:
           fi
           echo "Done"
 
-      - name: Generate kernel modules package
+      - name: Generate kernel modules
         run: |
-          echo "Check kernel version"
-          IFS=- read -r var1 var2 var3 version <<< ${{ github.ref_name }}
-          echo "Kernel verison: $version"
           cd linux
-          echo "Generate kernel modules tarball"
-          mkdir -p ${{ matrix.image-name }}-modules_install && make modules_install INSTALL_MOD_PATH=${{ matrix.image-name }}-modules_install
-          cp .github/scripts/modules-install.sh ${{ matrix.image-name }}-modules_install/
-          rm -rf ${{ matrix.image-name }}-modules_install/lib/modules/$version-WSL2-STABLE+/build
-          echo "$version" >> ${{ matrix.image-name }}-modules_install/kernel_version.txt
-          tar -czf ${{ matrix.image-name }}-modules_install.tar.gz ${{ matrix.image-name }}-modules_install && mv ${{ matrix.image-name }}-modules_install.tar.gz ../
+          mkdir -p ${{ matrix.image-name }}-addon_install && make modules_install INSTALL_MOD_PATH=${{ matrix.image-name }}-addon_install
+          rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/build
           echo "Done"
 
-      - name: Generate kernel optional package (headers, docs)
+      - name: Generate kernel headers and documents
         run: |
-          echo "Check kernel version"
-          IFS=- read -r var1 var2 var3 version <<< ${{ github.ref_name }}
-          echo "Kernel verison: $version"
           cd linux
-          echo "Generate kernel headers tarball"
-          mkdir -p ${{ matrix.image-name }}-optional_install/build
-          export optional_path=${{ matrix.image-name }}-optional_install/build
-          install -Dt "$optional_path" -m644 Makefile Module.symvers System.map vmlinux
-          install -Dt "$optional_path/kernel" -m644 kernel/Makefile
+          export addon_path=${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/build
+          mkdir -p $addon_path
+          install -Dt "$addon_path" -m644 Makefile Module.symvers System.map vmlinux
+          install -Dt "$addon_path/kernel" -m644 kernel/Makefile
           if [ ${{ matrix.arch }} == "x86" ]
           then
-          install -Dt "$optional_path/arch/x86" -m644 arch/x86/Makefile
+          install -Dt "$addon_path/arch/x86" -m644 arch/x86/Makefile
           else
-          install -Dt "$optional_path/arch/arm64" -m644 arch/arm64/Makefile
+          install -Dt "$addon_path/arch/arm64" -m644 arch/arm64/Makefile
           fi
-          cp -t "$optional_path" -a scripts
+          cp -t "$addon_path" -a scripts
           if [ ${{ matrix.arch }} == "x86" ]
           then
-          install -Dt "$optional_path/tools/objtool" tools/objtool/objtool
-          install -Dt "$optional_path/tools/bpf/resolve_btfids" tools/bpf/resolve_btfids/resolve_btfids
+          install -Dt "$addon_path/tools/objtool" tools/objtool/objtool
+          install -Dt "$addon_path/tools/bpf/resolve_btfids" tools/bpf/resolve_btfids/resolve_btfids
           fi
-          cp -t "$optional_path" -a include
+          cp -t "$addon_path" -a include
           if [ ${{ matrix.arch }} == "x86" ]
           then
-          cp -t "$optional_path/arch/x86" -a arch/x86/include
-          install -Dt "$optional_path/arch/x86/kernel" -m644 arch/x86/kernel/asm-offsets.s
+          cp -t "$addon_path/arch/x86" -a arch/x86/include
+          install -Dt "$addon_path/arch/x86/kernel" -m644 arch/x86/kernel/asm-offsets.s
           else
-          cp -t "$optional_path/arch/arm64" -a arch/arm64/include
-          install -Dt "$optional_path/arch/arm64/kernel" -m644 arch/arm64/kernel/asm-offsets.s
-          mkdir -p "$optional_path/arch/arm"
-          cp -t "$optional_path/arch/arm" -a arch/arm/include
+          cp -t "$addon_path/arch/arm64" -a arch/arm64/include
+          install -Dt "$addon_path/arch/arm64/kernel" -m644 arch/arm64/kernel/asm-offsets.s
+          mkdir -p "$addon_path/arch/arm"
+          cp -t "$addon_path/arch/arm" -a arch/arm/include
           fi
-          install -Dt "$optional_path/drivers/md" -m644 drivers/md/*.h
-          install -Dt "$optional_path/net/mac80211" -m644 net/mac80211/*.h
-          install -Dt "$optional_path/drivers/media/i2c" -m644 drivers/media/i2c/msp3400-driver.h
-          install -Dt "$optional_path/drivers/media/usb/dvb-usb" -m644 drivers/media/usb/dvb-usb/*.h
-          install -Dt "$optional_path/drivers/media/dvb-frontends" -m644 drivers/media/dvb-frontends/*.h
-          install -Dt "$optional_path/drivers/media/tuners" -m644 drivers/media/tuners/*.h
-          install -Dt "$optional_path/drivers/iio/common/hid-sensors" -m644 drivers/iio/common/hid-sensors/*.h
-          find . -name 'Kconfig*' -exec install -Dm644 {} "$optional_path/{}" \;
+          install -Dt "$addon_path/drivers/md" -m644 drivers/md/*.h
+          install -Dt "$addon_path/net/mac80211" -m644 net/mac80211/*.h
+          install -Dt "$addon_path/drivers/media/i2c" -m644 drivers/media/i2c/msp3400-driver.h
+          install -Dt "$addon_path/drivers/media/usb/dvb-usb" -m644 drivers/media/usb/dvb-usb/*.h
+          install -Dt "$addon_path/drivers/media/dvb-frontends" -m644 drivers/media/dvb-frontends/*.h
+          install -Dt "$addon_path/drivers/media/tuners" -m644 drivers/media/tuners/*.h
+          install -Dt "$addon_path/drivers/iio/common/hid-sensors" -m644 drivers/iio/common/hid-sensors/*.h
+          find . -name 'Kconfig*' -exec install -Dm644 {} "$addon_path/{}" \;
           export arch
           if [ ${{ matrix.arch }} == "x86" ]
           then
-          for arch in "$optional_path"/arch/*/; do
+          for arch in "$addon_path"/arch/*/; do
             [[ $arch = */x86/ ]] && continue
             echo "Removing $(basename "$arch")"
             rm -r "$arch"
           done
           else
-          for arch in "$optional_path"/arch/*/; do
+          for arch in "$addon_path"/arch/*/; do
             [[ $arch = */arm64/ ]] && continue
             echo "Removing $(basename "$arch")"
             rm -r "$arch"
           done
           fi
-          rm -r $optional_path/Documentation
-          find -L "$optional_path" -type l -printf 'Removing %P\n' -delete
-          find -L "$optional_path" -type f -name '*.o' -printf 'Removing %P\n' -delete
+          rm -r $addon_path/Documentation
+          find -L "$addon_path" -type l -printf 'Removing %P\n' -delete
+          find -L "$addon_path" -type f -name '*.o' -printf 'Removing %P\n' -delete
           export file
           export STRIP_SHARED
           export STRIP_STATIC
@@ -141,16 +128,21 @@ jobs:
               application/x-pie-executable\;*)
                 strip -v $STRIP_SHARED $file ;;
             esac
-          done < <(find "$optional_path" -type f -perm -u+x ! -name vmlinux -print0)
+          done < <(find "$addon_path" -type f -perm -u+x ! -name vmlinux -print0)
           if [ ${{ matrix.arch }} == "x86" ]
           then
-          strip -v $STRIP_STATIC "$optional_path/vmlinux"
+          strip -v $STRIP_STATIC "$addon_path/vmlinux"
           fi
-          echo "Generate kernel documentations tarball"
-          cp -r Documentation $optional_path/Documentation
-          cp .github/scripts/optionals-install.sh ${{ matrix.image-name }}-optional_install/
-          echo "$version" >> ${{ matrix.image-name }}-optional_install/kernel_version.txt
-          tar -czf ${{ matrix.image-name }}-optional_install.tar.gz ${{ matrix.image-name }}-optional_install && mv ${{ matrix.image-name }}-optional_install.tar.gz ../
+          cp -r Documentation $addon_path/Documentation
+          echo "Done"
+
+      - name: Generate kernel additional package tarball
+        run: |
+          cd linux
+          IFS=- read -r var1 var2 var3 version <<< ${{ github.ref_name }}
+          cp .github/scripts/addon-install.sh ${{ matrix.image-name }}-addon_install/
+          echo "$version" >> ${{ matrix.image-name }}-addon_install/kernel_version.txt
+          tar -czf ${{ matrix.image-name }}-addon_install.tar.gz ${{ matrix.image-name }}-addon_install && mv ${{ matrix.image-name }}-addon_install.tar.gz ../
           echo "Done"
 
       - name: Generate SHA-256 Checksum
@@ -159,18 +151,14 @@ jobs:
           if [ ${{ matrix.arch }} == "x86" ]
           then
           read -r x86ImageSHA rest <<< "$(sha256sum ${{ matrix.image-name }})"
-          read -r x86ModuleSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-modules_install.tar.gz)"
-          read -r x86OptionalSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-optional_install.tar.gz)"
+          read -r x86AddonSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-addon_install.tar.gz)"
           echo "X86_IMAGE_SHA=$x86ImageSHA" >> $GITHUB_OUTPUT
-          echo "X86_MODULE_SHA=$x86ModuleSHA" >> $GITHUB_OUTPUT
-          echo "X86_OPTIONAL_SHA=$x86OptionalSHA" >> $GITHUB_OUTPUT
+          echo "X86_ADDON_SHA=$x86AddonSHA" >> $GITHUB_OUTPUT
           else
           read -r arm64ImageSHA rest <<< "$(sha256sum ${{ matrix.image-name }})"
-          read -r arm64ModuleSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-modules_install.tar.gz)"
-          read -r arm64OptionalSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-optional_install.tar.gz)"
+          read -r arm64AddonSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-addon_install.tar.gz)"
           echo "ARM64_IMAGE_SHA=$arm64ImageSHA" >> $GITHUB_OUTPUT
-          echo "ARM64_MODULE_SHA=$arm64ModuleSHA" >> $GITHUB_OUTPUT
-          echo "ARM64_OPTIONAL_SHA=$arm64OptionalSHA" >> $GITHUB_OUTPUT
+          echo "ARM64_ADDON_SHA=$arm64AddonSHA" >> $GITHUB_OUTPUT
           fi
           sha256sum ${{ matrix.image-name }} > ${{ matrix.image-name }}.sha256
           echo "Done"
@@ -182,19 +170,16 @@ jobs:
           path: |
             ${{ matrix.image-name }}
             ${{ matrix.image-name }}.sha256
-            ${{ matrix.image-name }}-modules_install.tar.gz
-            ${{ matrix.image-name }}-optional_install.tar.gz
+            ${{ matrix.image-name }}-addon_install.tar.gz
 
   release:
     runs-on: ubuntu-latest
     needs: build
     env:
       X86_IMAGE_SHA: ${{ needs.build.outputs.X86_IMAGE_SHA }}
-      X86_MODULE_SHA: ${{ needs.build.outputs.X86_MODULE_SHA }}
-      X86_OPTIONAL_SHA: ${{ needs.build.outputs.X86_OPTIONAL_SHA }}
+      X86_ADDON_SHA: ${{ needs.build.outputs.X86_ADDON_SHA }}
       ARM64_IMAGE_SHA: ${{ needs.build.outputs.ARM64_IMAGE_SHA }}
-      ARM64_MODULE_SHA: ${{ needs.build.outputs.ARM64_MODULE_SHA }}
-      ARM64_OPTIONAL_SHA: ${{ needs.build.outputs.ARM64_OPTIONAL_SHA }}
+      ARM64_ADDON_SHA: ${{ needs.build.outputs.ARM64_ADDON_SHA }}
 
     steps:
       - uses: actions/checkout@main
@@ -215,18 +200,16 @@ jobs:
             | File Name | SHA-256 Checksum |
             |:--------------:|:------:|
             | bzImage-x86_64 | ${{ env.X86_IMAGE_SHA }} |
-            | bzImage-x86_64-modules_install.tar.gz | ${{ env.X86_MODULE_SHA }} |
-            | bzImage-x86_64-optional_install.tar.gz | ${{ env.X86_OPTIONAL_SHA }} |
+            | bzImage-x86_64-addon_install.tar.gz | ${{ env.X86_ADDON_SHA }} |
             | Image-arm64 | ${{ env.ARM64_IMAGE_SHA }} |
-            | Image-arm64-modules_install.tar.gz | ${{ env.ARM64_MODULE_SHA }} |
-            | Image-arm64-optional_install.tar.gz | ${{ env.ARM64_OPTIONAL_SHA }} |
+            | Image-arm64-addon_install.tar.gz | ${{ env.ARM64_ADDON_SHA }} |
 
             **How to apply this kernel?**
             Before you try to apply this kernel, You **MUST** shutdown your WSL. (wsl --shutdown)
             Check this [document](https://learn.microsoft.com/en-us/windows/wsl/wsl-config).
 
-            **How to install kernel module and optional packages in WSL2?**
-            Please check this [guideline](https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/wiki#kernel-modules-and-kernel-headers-installation-guide).
+            **How to install kernel additional package in WSL2?**
+            Please check this [guideline](https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/wiki#kernel-additional-package-installation).
 
             **This kernel built on ArchLinux.**
 
