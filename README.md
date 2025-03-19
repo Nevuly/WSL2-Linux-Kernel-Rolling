@@ -64,9 +64,9 @@ Scoop will automatically set kernel in `.wslconfig`.
 # Please change latest version of kernel and select your architecture
 wget https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/releases/download/linux-wsl-stable-**x.x.x**/bzImage-**arch**-addon_install.tar.gz
 
-tar -xzvf bzImage-**arch**-modules_install.tar.gz
+tar -xzvf bzImage-**arch**-addon_install.tar.gz
 
-cd bzImage-**arch**-modules_install
+cd bzImage-**arch**-addon_install
 
 sudo ./addon-install.sh
 ```
