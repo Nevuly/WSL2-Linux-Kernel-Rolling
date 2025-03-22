@@ -57,7 +57,7 @@ Scoop will automatically set kernel in `.wslconfig`.
  * This guide must be proceed in your WSL2 system.
  * Kernel additional package is optional. If you don't need it, just skip this guide.
  * Additional package contains kernel modules, headers and documents.
- * **If you try to use VHDX image or scoop, you must use WSL version 2.5.1 or later.**
+ * **If you try to use VHDX image, you must use WSL version 2.5.1 or later.**
 
 ### 2-1. Install Additional Package in WSL2 Directly
 ```bash
@@ -86,24 +86,6 @@ kernelModules=the\\path\\to\\bzImage-addon.vhdx
 ;
 ; Note that all `\` should be escaped with `\\`.
 ```
-
-### 2-3. Install Additional Package via Scoop
-**NOTICE**
- * You have to reboot your WSL2 system using `wsl --shutdown` after install or update kernel with using scoop.
-
-[Scoop][scoop-page] is a command-line installer on windows. If you have scoop installed, then you can install this kernel with following commands:
-
-```bash
-scoop bucket add frostbite https://github.com/Nevuly/frostbite
-
-scoop install frostbite/wsl2-rolling-kernel-stable
-```
-
-Scoop will automatically set kernel in `.wslconfig`.
-
-### 2-4. Update Kernel Image
- * If you installed kernel additional package via scoop, you can use `scoop update *` in Powershell.
- * If you installed kernel additional package manually, please follow guide **2-1 or 2-2** section.
 
 # Reporting Bugs
 If you discover an issue relating to WSL or the WSL2 kernel, please report it on
