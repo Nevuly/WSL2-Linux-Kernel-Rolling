@@ -1,0 +1,239 @@
+name: Stable Kernel CI
+
+on:
+  push:
+    tags:
+      - 'linux-wsl-stable-6.14.[0-9]+'
+
+run-name: Stable Release Build ${{ github.ref_name }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: nevuly/nevuly-dev-base:arch
+      options: --privileged
+    outputs:
+      X86_IMAGE_SHA: ${{ steps.gen-sha-256.outputs.X86_IMAGE_SHA }}
+      X86_ADDON_SHA: ${{ steps.gen-sha-256.outputs.X86_ADDON_SHA }}
+      X86_ADDON_VHDX_SHA: ${{ steps.gen-sha-256.outputs.X86_ADDON_VHDX_SHA }}
+      ARM64_IMAGE_SHA: ${{ steps.gen-sha-256.outputs.ARM64_IMAGE_SHA }}
+      ARM64_ADDON_SHA: ${{ steps.gen-sha-256.outputs.ARM64_ADDON_SHA }}
+      ARM64_ADDON_VHDX_SHA: ${{ steps.gen-sha-256.outputs.ARM64_ADDON_VHDX_SHA }}
+    strategy:
+      matrix:
+        include:
+          - arch: x86
+            image-name: bzImage-x86_64
+          - arch: arm64
+            image-name: Image-arm64
+
+    steps:
+      - name: Trust this directory
+        run: git config --global --add safe.directory /__w/WSL2-Linux-Kernel-Rolling/WSL2-Linux-Kernel-Rolling
+
+      - uses: actions/checkout@main
+
+      - name: Download WSL2 stable kernel
+        run: |
+          git clone https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling.git --depth 1 -b ${{ github.ref_name }} linux
+
+      - name: Build WSL2 stable kernel
+        run: |
+          cd linux
+          if [ ${{ matrix.arch }} == "x86" ]
+          then
+          make KCONFIG_CONFIG=arch/x86/configs/config-wsl-x86 -j$(echo `nproc` + 1 | bc)
+          cp arch/x86/boot/bzImage ../${{ matrix.image-name }}
+          else
+          export ARCH=arm64 && export CROSS_COMPILE=aarch64-linux-gnu-
+          make KCONFIG_CONFIG=arch/arm64/configs/config-wsl-arm64 -j$(echo `nproc` + 1 | bc)
+          cp arch/arm64/boot/Image ../${{ matrix.image-name }}
+          fi
+          echo "Done"
+
+      - name: Generate kernel modules
+        run: |
+          cd linux
+          mkdir -p ${{ matrix.image-name }}-addon_install && make modules_install INSTALL_MOD_PATH=${{ matrix.image-name }}-addon_install
+          rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/build
+          echo "Done"
+
+      - name: Generate kernel headers and documents
+        run: |
+          cd linux
+          export addon_path=${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/build
+          mkdir -p $addon_path
+          install -Dt "$addon_path" -m644 Makefile Module.symvers System.map vmlinux
+          install -Dt "$addon_path/kernel" -m644 kernel/Makefile
+          if [ ${{ matrix.arch }} == "x86" ]
+          then
+          install -Dt "$addon_path/arch/x86" -m644 arch/x86/Makefile
+          else
+          install -Dt "$addon_path/arch/arm64" -m644 arch/arm64/Makefile
+          fi
+          cp -t "$addon_path" -a scripts
+          if [ ${{ matrix.arch }} == "x86" ]
+          then
+          install -Dt "$addon_path/tools/objtool" tools/objtool/objtool
+          install -Dt "$addon_path/tools/bpf/resolve_btfids" tools/bpf/resolve_btfids/resolve_btfids
+          fi
+          cp -t "$addon_path" -a include
+          if [ ${{ matrix.arch }} == "x86" ]
+          then
+          cp -t "$addon_path/arch/x86" -a arch/x86/include
+          install -Dt "$addon_path/arch/x86/kernel" -m644 arch/x86/kernel/asm-offsets.s
+          else
+          cp -t "$addon_path/arch/arm64" -a arch/arm64/include
+          install -Dt "$addon_path/arch/arm64/kernel" -m644 arch/arm64/kernel/asm-offsets.s
+          mkdir -p "$addon_path/arch/arm"
+          cp -t "$addon_path/arch/arm" -a arch/arm/include
+          fi
+          install -Dt "$addon_path/drivers/md" -m644 drivers/md/*.h
+          install -Dt "$addon_path/net/mac80211" -m644 net/mac80211/*.h
+          install -Dt "$addon_path/drivers/media/i2c" -m644 drivers/media/i2c/msp3400-driver.h
+          install -Dt "$addon_path/drivers/media/usb/dvb-usb" -m644 drivers/media/usb/dvb-usb/*.h
+          install -Dt "$addon_path/drivers/media/dvb-frontends" -m644 drivers/media/dvb-frontends/*.h
+          install -Dt "$addon_path/drivers/media/tuners" -m644 drivers/media/tuners/*.h
+          install -Dt "$addon_path/drivers/iio/common/hid-sensors" -m644 drivers/iio/common/hid-sensors/*.h
+          find . -name 'Kconfig*' -exec install -Dm644 {} "$addon_path/{}" \;
+          export arch
+          if [ ${{ matrix.arch }} == "x86" ]
+          then
+          for arch in "$addon_path"/arch/*/; do
+            [[ $arch = */x86/ ]] && continue
+            echo "Removing $(basename "$arch")"
+            rm -r "$arch"
+          done
+          else
+          for arch in "$addon_path"/arch/*/; do
+            [[ $arch = */arm64/ ]] && continue
+            echo "Removing $(basename "$arch")"
+            rm -r "$arch"
+          done
+          fi
+          rm -r $addon_path/Documentation
+          find -L "$addon_path" -type l -printf 'Removing %P\n' -delete
+          find -L "$addon_path" -type f -name '*.o' -printf 'Removing %P\n' -delete
+          export file
+          export STRIP_SHARED
+          export STRIP_STATIC
+          export STRIP_BINARIES
+          while read -rd '' $file; do
+            case "$(file -Sib "$file")" in
+              application/x-sharedlib\;*)
+                strip -v $STRIP_SHARED $file ;;
+              application/x-archive\;*)
+                strip -v $STRIP_STATIC $file ;;
+              application/x-executable\;*)
+                strip -v $STRIP_BINARIES $file ;;
+              application/x-pie-executable\;*)
+                strip -v $STRIP_SHARED $file ;;
+            esac
+          done < <(find "$addon_path" -type f -perm -u+x ! -name vmlinux -print0)
+          if [ ${{ matrix.arch }} == "x86" ]
+          then
+          strip -v $STRIP_STATIC "$addon_path/vmlinux"
+          fi
+          cp -r Documentation $addon_path/Documentation
+          echo "Done"
+
+      - name: Generate kernel additional package VHDX image
+        run: |
+          cd linux
+          sudo ./.github/scripts/gen_modules_vhdx.sh "$PWD/${{ matrix.image-name }}-addon_install" ${{ matrix.image-name }}-addon.vhdx
+          mv ${{ matrix.image-name }}-addon.vhdx ../
+          echo "Done"
+
+      - name: Generate kernel additional package tarball
+        run: |
+          cd linux
+          IFS=- read -r var1 var2 var3 version <<< ${{ github.ref_name }}
+          cp .github/scripts/addon-install.sh ${{ matrix.image-name }}-addon_install/
+          echo "$version" >> ${{ matrix.image-name }}-addon_install/kernel_version.txt
+          tar -czf ${{ matrix.image-name }}-addon_install.tar.gz ${{ matrix.image-name }}-addon_install && mv ${{ matrix.image-name }}-addon_install.tar.gz ../
+          echo "Done"
+
+      - name: Generate SHA-256 Checksum
+        id: gen-sha-256
+        run: |
+          if [ ${{ matrix.arch }} == "x86" ]
+          then
+          read -r x86ImageSHA rest <<< "$(sha256sum ${{ matrix.image-name }})"
+          read -r x86AddonSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-addon_install.tar.gz)"
+          read -r x86AddonVHDXSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-addon.vhdx)"
+          echo "X86_IMAGE_SHA=$x86ImageSHA" >> $GITHUB_OUTPUT
+          echo "X86_ADDON_SHA=$x86AddonSHA" >> $GITHUB_OUTPUT
+          echo "X86_ADDON_VHDX_SHA=$x86AddonVHDXSHA" >> $GITHUB_OUTPUT
+          else
+          read -r arm64ImageSHA rest <<< "$(sha256sum ${{ matrix.image-name }})"
+          read -r arm64AddonSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-addon_install.tar.gz)"
+          read -r arm64AddonVHDXSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-addon.vhdx)"
+          echo "ARM64_IMAGE_SHA=$arm64ImageSHA" >> $GITHUB_OUTPUT
+          echo "ARM64_ADDON_SHA=$arm64AddonSHA" >> $GITHUB_OUTPUT
+          echo "ARM64_ADDON_VHDX_SHA=$arm64AddonVHDXSHA" >> $GITHUB_OUTPUT
+          fi
+          sha256sum ${{ matrix.image-name }} > ${{ matrix.image-name }}.sha256
+          sha256sum ${{ matrix.image-name }}-addon.vhdx > ${{ matrix.image-name }}-addon.vhdx.sha256
+          echo "Done"
+
+      - name: Upload kernel Images
+        uses: actions/upload-artifact@main
+        with:
+          name: ${{ matrix.image-name }}
+          path: |
+            ${{ matrix.image-name }}
+            ${{ matrix.image-name }}.sha256
+            ${{ matrix.image-name }}-addon_install.tar.gz
+            ${{ matrix.image-name }}-addon.vhdx
+            ${{ matrix.image-name }}-addon.vhdx.sha256
+
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    env:
+      X86_IMAGE_SHA: ${{ needs.build.outputs.X86_IMAGE_SHA }}
+      X86_ADDON_SHA: ${{ needs.build.outputs.X86_ADDON_SHA }}
+      X86_ADDON_VHDX_SHA: ${{ needs.build.outputs.X86_ADDON_VHDX_SHA }}
+      ARM64_IMAGE_SHA: ${{ needs.build.outputs.ARM64_IMAGE_SHA }}
+      ARM64_ADDON_SHA: ${{ needs.build.outputs.ARM64_ADDON_SHA }}
+      ARM64_ADDON_VHDX_SHA: ${{ needs.build.outputs.ARM64_ADDON_VHDX_SHA }}
+
+    steps:
+      - uses: actions/checkout@main
+      - uses: actions/download-artifact@main
+        with:
+          path: release_images/
+
+      - name: Release Kernel
+        uses: softprops/action-gh-release@master
+        with:
+          name: ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          body: |
+            **WARNING**
+            ARM64 kernel has not been tested. If you have any issues, please leave an issue on the [Issues tab](https://github.com/Nevuly/WSL2-Rolling-Kernel-Issue/issues)!
+
+            **Hash Information**
+            | File Name | SHA-256 Checksum |
+            |:--------------:|:------:|
+            | bzImage-x86_64 | ${{ env.X86_IMAGE_SHA }} |
+            | bzImage-x86_64-addon_install.tar.gz | ${{ env.X86_ADDON_SHA }} |
+            | bzImage-x86_64-addon.vhdx | ${{ env.X86_ADDON_VHDX_SHA }} |
+            | Image-arm64 | ${{ env.ARM64_IMAGE_SHA }} |
+            | Image-arm64-addon_install.tar.gz | ${{ env.ARM64_ADDON_SHA }} |
+            | Image-arm64-addon.vhdx | ${{ env.ARM64_ADDON_VHDX_SHA }} |
+
+            **How to apply this kernel?**
+            Before you try to apply this kernel, You **MUST** shutdown your WSL. (wsl --shutdown)
+            Check this [document](https://learn.microsoft.com/en-us/windows/wsl/wsl-config).
+
+            **How to install kernel additional package in WSL2?**
+            Please check this [guideline](https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/wiki#kernel-additional-package-installation).
+
+            **This kernel built on ArchLinux.**
+
+          files: |
+            release_images/*/*
+          token: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
+          fail_on_unmatched_files: true
