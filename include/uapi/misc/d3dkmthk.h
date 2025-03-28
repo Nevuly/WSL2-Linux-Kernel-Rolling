@@ -14,6 +14,8 @@
 #ifndef _D3DKMTHK_H
 #define _D3DKMTHK_H
 
+#include <linux/types.h>
+
 /*
  * This structure matches the definition of D3DKMTHANDLE in Windows.
  * The handle is opaque in user mode. It is used by user mode applications to
