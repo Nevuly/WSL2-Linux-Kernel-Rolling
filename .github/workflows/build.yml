@@ -55,6 +55,7 @@ jobs:
       - name: Generate kernel modules
         run: |
           cd linux
+          IFS=- read -r var1 var2 var3 version <<< ${{ github.ref_name }}
           mkdir -p ${{ matrix.image-name }}-addon_install && make modules_install INSTALL_MOD_PATH=${{ matrix.image-name }}-addon_install
           rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/build
           echo "Done"
@@ -62,6 +63,7 @@ jobs:
       - name: Generate kernel headers and documents
         run: |
           cd linux
+          IFS=- read -r var1 var2 var3 version <<< ${{ github.ref_name }}
           export addon_path=${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/build
           mkdir -p $addon_path
           install -Dt "$addon_path" -m644 Makefile Module.symvers System.map vmlinux
