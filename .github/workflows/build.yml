@@ -144,7 +144,8 @@ jobs:
       - name: Generate kernel additional package VHDX image
         run: |
           cd linux
-          sudo ./.github/scripts/gen_modules_vhdx.sh "$PWD/${{ matrix.image-name }}-addon_install" ${{ matrix.image-name }}-addon.vhdx
+          IFS=- read -r var1 var2 var3 version <<< ${{ github.ref_name }}
+          sudo ./.github/scripts/gen_modules_vhdx.sh "$PWD/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+" ${{ matrix.image-name }}-addon.vhdx
           mv ${{ matrix.image-name }}-addon.vhdx ../
           echo "Done"
 
