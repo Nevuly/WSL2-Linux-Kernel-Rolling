@@ -138,6 +138,7 @@ jobs:
           strip -v $STRIP_STATIC "$addon_path/vmlinux"
           fi
           cp -r Documentation $addon_path/Documentation
+          rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/build/${{ matrix.image-name }}-addon_install
           echo "Done"
 
       - name: Generate kernel additional package VHDX image
