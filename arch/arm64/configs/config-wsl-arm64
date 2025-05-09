@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm64 6.14.5 Kernel Configuration
+# Linux/arm64 6.14.6 Kernel Configuration
 #
 CONFIG_CC_VERSION_TEXT="aarch64-linux-gnu-gcc (GCC) 14.2.0"
 CONFIG_CC_IS_GCC=y
@@ -2843,6 +2843,7 @@ CONFIG_VIDEO=y
 CONFIG_DRM=y
 # CONFIG_DRM_DEBUG_MM is not set
 # CONFIG_DRM_PANIC is not set
+# CONFIG_DRM_DEBUG_DP_MST_TOPOLOGY_REFS is not set
 # CONFIG_DRM_DEBUG_MODESET_LOCK is not set
 # CONFIG_DRM_LOAD_EDID_FIRMWARE is not set
 CONFIG_DRM_GEM_SHMEM_HELPER=y
