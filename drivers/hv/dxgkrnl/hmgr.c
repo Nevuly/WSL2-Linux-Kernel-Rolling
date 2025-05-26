@@ -14,6 +14,7 @@
 #include <linux/kernel.h>
 #include <linux/mutex.h>
 #include <linux/rwsem.h>
+#include <linux/vmalloc.h>
 
 #include "misc.h"
 #include "dxgkrnl.h"
