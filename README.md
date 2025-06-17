@@ -87,6 +87,24 @@ kernelModules=the\\path\\to\\bzImage-addon.vhdx
 ; Note that all `\` should be escaped with `\\`.
 ```
 
+### 2-3. Install via Scoop
+**NOTICE**
+ * You have to reboot your WSL2 system using `wsl --shutdown` after install or update kernel with using scoop.
+
+[Scoop][scoop-page] is a command-line installer on windows. If you have scoop installed, then you can install this kernel with following commands:
+
+```bash
+scoop bucket add frostbite https://github.com/Nevuly/frostbite
+
+scoop install frostbite/wsl2-rolling-kernel-stable-addon
+```
+
+Scoop will automatically set kernel in `.wslconfig`.
+
+### 2-4. Update Kernel Additional Package
+ * If you installed kernel via scoop, you can use `scoop update *` in Powershell.
+ * If you installed kernel manually, download kernel image from [releases page][releases-page], and replace it.
+
 # Reporting Bugs
 If you discover an issue relating to WSL or the WSL2 kernel, please report it on
 the [Issues tab][issue].
