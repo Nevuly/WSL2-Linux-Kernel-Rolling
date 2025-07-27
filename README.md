@@ -10,4 +10,4 @@ Maintainer: Yang Jeong Hun (Nevuly)
 
 **This kernel not supported anymore. Please use latest supported kernel!**
 
-[wsl2-kernel-6.14]: https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling-LTS/tree/wsl-6.14-lts-eol
+[wsl2-kernel-6.14]: https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/tree/wsl-6.14-rolling-eol
