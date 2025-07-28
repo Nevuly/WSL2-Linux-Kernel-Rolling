@@ -455,27 +455,10 @@ static bool dxgdmafence_enable_signaling(struct dma_fence *fence)
 	return true;
 }
 
-static void dxgdmafence_value_str(struct dma_fence *fence,
-				  char *str, int size)
-{
-	snprintf(str, size, "%lld", fence->seqno);
-}
-
-static void dxgdmafence_timeline_value_str(struct dma_fence *fence,
-					   char *str, int size)
-{
-	struct dxgsyncpoint *syncpoint;
-
-	syncpoint = to_syncpoint(fence);
-	snprintf(str, size, "%lld", syncpoint->fence_value);
-}
-
 static const struct dma_fence_ops dxgdmafence_ops = {
 	.get_driver_name = dxgdmafence_get_driver_name,
 	.get_timeline_name = dxgdmafence_get_timeline_name,
 	.enable_signaling = dxgdmafence_enable_signaling,
 	.signaled = dxgdmafence_signaled,
 	.release = dxgdmafence_release,
-	.fence_value_str = dxgdmafence_value_str,
-	.timeline_value_str = dxgdmafence_timeline_value_str,
 };
