@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm64 6.15.9 Kernel Configuration
+# Linux/arm64 6.15.10 Kernel Configuration
 #
 CONFIG_CC_VERSION_TEXT="aarch64-linux-gnu-gcc (GCC) 15.1.0"
 CONFIG_CC_IS_GCC=y
@@ -3624,6 +3624,7 @@ CONFIG_VHOST_NET=y
 # CONFIG_VHOST_SCSI is not set
 CONFIG_VHOST_VSOCK=m
 # CONFIG_VHOST_CROSS_ENDIAN_LEGACY is not set
+CONFIG_VHOST_ENABLE_FORK_OWNER_CONTROL=y
 
 #
 # Microsoft Hyper-V guest support
