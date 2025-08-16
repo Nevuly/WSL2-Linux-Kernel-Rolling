@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm64 6.16.0 Kernel Configuration
+# Linux/arm64 6.16.1 Kernel Configuration
 #
 CONFIG_CC_VERSION_TEXT="aarch64-linux-gnu-gcc (GCC) 15.1.0"
 CONFIG_CC_IS_GCC=y
@@ -2745,7 +2745,6 @@ CONFIG_PINCTRL=y
 # CONFIG_W1 is not set
 CONFIG_POWER_RESET=y
 # CONFIG_POWER_RESET_RESTART is not set
-# CONFIG_POWER_RESET_TORADEX_EC is not set
 # CONFIG_POWER_RESET_XGENE is not set
 # CONFIG_POWER_RESET_SYSCON is not set
 # CONFIG_POWER_RESET_SYSCON_POWEROFF is not set
@@ -3644,6 +3643,7 @@ CONFIG_VHOST_NET=y
 # CONFIG_VHOST_SCSI is not set
 CONFIG_VHOST_VSOCK=m
 # CONFIG_VHOST_CROSS_ENDIAN_LEGACY is not set
+CONFIG_VHOST_ENABLE_FORK_OWNER_CONTROL=y
 
 #
 # Microsoft Hyper-V guest support
