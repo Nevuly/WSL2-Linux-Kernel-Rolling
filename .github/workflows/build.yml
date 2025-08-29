@@ -215,8 +215,8 @@ jobs:
           name: ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
           body: |
-            **WARNING**
-            ARM64 kernel has not been tested. If you have any issues, please leave an issue on the [Issues tab](https://github.com/Nevuly/WSL2-Rolling-Kernel-Issue/issues)!
+            [!WARNING]
+            > ARM64 kernel has not been tested. If you have any issues, please leave an issue on the [Issues tab](https://github.com/Nevuly/WSL2-Rolling-Kernel-Issue/issues)!
 
             **Hash Information**
             | File Name | SHA-256 Checksum |
