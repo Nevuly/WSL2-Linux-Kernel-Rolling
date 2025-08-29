@@ -35,8 +35,8 @@ kernel=the\\path\\to\\bzImage
 4. Reboot your WSL2 and check kernel version using `uname -a` in WSL2 terminal.
 
 ### 1-2. Install via Scoop
-**NOTICE**
- * You have to reboot your WSL2 system using `wsl --shutdown` after install or update kernel with using scoop.
+> [!NOTE]
+> You have to reboot your WSL2 system using `wsl --shutdown` after install or update kernel with using scoop.
 
 [Scoop][scoop-page] is a command-line installer on windows. If you have scoop installed, then you can install this kernel with following commands:
 
@@ -53,11 +53,13 @@ Scoop will automatically set kernel in `.wslconfig`.
  * If you installed kernel manually, download kernel image from [releases page][releases-page], and replace it.
 
 ## 2. Kernel Additional Package
-**NOTICE**
- * This guide must be proceed in your WSL2 system.
- * Kernel additional package is optional. If you don't need it, just skip this guide.
- * Additional package contains kernel modules, headers and documents.
- * **If you try to use VHDX image, you must use WSL version 2.5.1 or later.**
+> [!NOTE]
+> This guide must be proceed in your WSL2 system.
+> Kernel additional package is optional. If you don't need it, just skip this guide.
+> Additional package contains kernel modules, headers and documents.
+
+> [!WARNING]
+> **If you try to use VHDX image, you must use WSL version 2.5.1 or later.**
 
 ### 2-1. Install Additional Package in WSL2 Directly
 ```bash
@@ -88,8 +90,8 @@ kernelModules=the\\path\\to\\bzImage-addon.vhdx
 ```
 
 ### 2-3. Install via Scoop
-**NOTICE**
- * You have to reboot your WSL2 system using `wsl --shutdown` after install or update kernel with using scoop.
+> [!NOTE]
+> You have to reboot your WSL2 system using `wsl --shutdown` after install or update kernel with using scoop.
 
 [Scoop][scoop-page] is a command-line installer on windows. If you have scoop installed, then you can install this kernel with following commands:
 
