@@ -10,6 +10,7 @@
 #
 # Normal rules (sorted alphabetically)
 #
+!.github
 .*
 *.a
 *.asn1.[ch]
