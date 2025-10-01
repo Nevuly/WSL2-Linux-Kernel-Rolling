@@ -48,6 +48,7 @@ jobs:
           make KCONFIG_CONFIG=arch/arm64/configs/config-wsl-arm64 -j$(echo `nproc` + 1 | bc)
           cp arch/arm64/boot/Image ../${{ matrix.image-name }}
           fi
+          echo ""
           echo "Done"
 
       - name: Generate kernel modules
@@ -56,6 +57,7 @@ jobs:
           IFS=- read -r var1 var2 var3 version <<< ${{ github.ref_name }}
           mkdir -p ${{ matrix.image-name }}-addon_install && make modules_install INSTALL_MOD_PATH=${{ matrix.image-name }}-addon_install
           rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/build
+          echo ""
           echo "Done"
 
       - name: Generate kernel headers and documents
@@ -137,14 +139,16 @@ jobs:
           fi
           cp -r Documentation $addon_path/Documentation
           rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/build/${{ matrix.image-name }}-addon_install
+          echo ""
           echo "Done"
 
-      - name: Generate kernel additional package VHDX image
+      - name: Generate kernel addon package
         run: |
           cd linux
           IFS=- read -r var1 var2 var3 version <<< ${{ github.ref_name }}
           sudo ./.github/scripts/gen_modules_vhdx.sh "$PWD/${{ matrix.image-name }}-addon_install/" "$version-WSL2-STABLE+" ${{ matrix.image-name }}-addon.vhdx
           mv ${{ matrix.image-name }}-addon.vhdx ../
+          echo ""
           echo "Done"
 
       - name: Generate SHA-256 Checksum
@@ -164,6 +168,7 @@ jobs:
           fi
           sha256sum ${{ matrix.image-name }} > ${{ matrix.image-name }}.sha256
           sha256sum ${{ matrix.image-name }}-addon.vhdx > ${{ matrix.image-name }}-addon.vhdx.sha256
+          echo ""
           echo "Done"
 
       - name: Upload kernel Images
