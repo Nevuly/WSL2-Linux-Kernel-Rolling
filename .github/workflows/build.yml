@@ -198,7 +198,9 @@ jobs:
           tag_name: ${{ github.ref_name }}
           body: |
             > [!WARNING]
-            > ARM64 kernel has not been tested. If you have any issues, please leave an issue on the [Issues tab](https://github.com/Nevuly/WSL2-Rolling-Kernel-Issue/issues)!
+            > ARM64 kernel has not been tested!
+            >
+            > If you have any issues, please leave an issue on the [issue tab](https://github.com/Nevuly/WSL2-Rolling-Kernel-Issue/issues)!
 
             **Hash Information**
             | File Name | SHA-256 Checksum |
@@ -208,12 +210,8 @@ jobs:
             | Image-arm64 | ${{ env.ARM64_IMAGE_SHA }} |
             | Image-arm64-addon.vhdx | ${{ env.ARM64_ADDON_SHA }} |
 
-            **How to apply this kernel?**
-            Before you try to apply this kernel, You **MUST** shutdown your WSL. (wsl --shutdown)
-            Check this [document](https://learn.microsoft.com/en-us/windows/wsl/wsl-config).
-
-            **How to install kernel additional package in WSL2?**
-            Please check this [guideline](https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/wiki#kernel-additional-package-installation).
+            **How to install this kernel or kernel addon package in WSL2?**
+            Please check this [wiki](https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/wiki/Install-Instructions).
 
             **This kernel built on ArchLinux.**
 
