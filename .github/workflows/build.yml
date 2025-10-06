@@ -57,6 +57,18 @@ jobs:
           IFS=- read -r var1 var2 var3 version <<< ${{ github.ref_name }}
           mkdir -p ${{ matrix.image-name }}-addon_install && make modules_install INSTALL_MOD_PATH=${{ matrix.image-name }}-addon_install
           rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/build
+          if [ ${{ matrix.arch }} == "x86" ]
+          then
+          cd ..
+          echo ""
+          echo "Download ZFS"
+          echo ""
+          git clone https://github.com/openzfs/zfs.git --depth 1 zfs
+          cd zfs
+          ./autogen.sh
+          ./configure --with-linux="$(pwd)/../linux" --with-linux-obj="$(pwd)/../linux"
+          make -j$(echo `nproc` + 1 | bc)
+          fi
           echo ""
           echo "Done"
 
@@ -144,8 +156,13 @@ jobs:
 
       - name: Generate kernel addon package
         run: |
-          cd linux
           IFS=- read -r var1 var2 var3 version <<< ${{ github.ref_name }}
+          if [ ${{ matrix.arch }} == "x86" ]
+          then
+          mkdir -p linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/extra
+          find zfs/module -name "*.ko" -exec cp {} linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/extra \;
+          fi
+          cd linux
           sudo ./.github/scripts/gen_modules_vhdx.sh "$PWD/${{ matrix.image-name }}-addon_install/" "$version-WSL2-STABLE+" ${{ matrix.image-name }}-addon.vhdx
           mv ${{ matrix.image-name }}-addon.vhdx ../
           echo ""
