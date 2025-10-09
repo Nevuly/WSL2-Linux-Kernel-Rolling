@@ -217,7 +217,7 @@ jobs:
             >
             > If you have any issues, please leave an issue on the [issue tab](https://github.com/Nevuly/WSL2-Rolling-Kernel-Issue/issues)!
 
-            **Hash Information**
+            ### **Hash Information**
             | File Name | SHA-256 Checksum |
             |:--------------:|:------:|
             | bzImage-x86_64 | ${{ env.X86_IMAGE_SHA }} |
@@ -225,8 +225,8 @@ jobs:
             | Image-arm64 | ${{ env.ARM64_IMAGE_SHA }} |
             | Image-arm64-addon.vhdx | ${{ env.ARM64_ADDON_SHA }} |
 
-            **How to install this kernel or kernel addon package in WSL2?**
-            Please check this [wiki](https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/wiki/Install-Instructions).
+            ### **How to install this kernel or kernel addon package in WSL2?**
+             - Please see this [wiki](https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/wiki/Install-Instructions).
 
             **This kernel built on ArchLinux.**
 
