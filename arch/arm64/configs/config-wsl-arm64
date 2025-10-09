@@ -164,7 +164,7 @@ CONFIG_GENERIC_SCHED_CLOCK=y
 # Scheduler features
 #
 # CONFIG_UCLAMP_TASK is not set
-# CONFIG_SCHED_PROXY_EXEC is not set
+CONFIG_SCHED_PROXY_EXEC=y
 # end of Scheduler features
 
 CONFIG_ARCH_SUPPORTS_NUMA_BALANCING=y
