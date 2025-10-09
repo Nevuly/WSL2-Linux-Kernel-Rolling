@@ -29,16 +29,18 @@ jobs:
             os: ubuntu-24.04-arm
 
     steps:
-      - name: Trust this directory
-        run: git config --global --add safe.directory /__w/WSL2-Linux-Kernel-Rolling/WSL2-Linux-Kernel-Rolling
+      - name: Trust Build Directory
+        run: |
+          git config --global --add safe.directory /__w/WSL2-Linux-Kernel-Rolling/WSL2-Linux-Kernel-Rolling
 
-      - uses: actions/checkout@main
+      - name: Checkout
+        uses: actions/checkout@main
 
-      - name: Download WSL2 stable kernel
+      - name: Download WSL2 Stable Kernel
         run: |
           git clone https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling.git --depth 1 -b ${{ github.ref_name }} linux
 
-      - name: Build WSL2 stable kernel
+      - name: Build WSL2 Stable Kernel
         run: |
           cd linux
           if [ ${{ matrix.arch }} == "x86" ]
@@ -49,31 +51,15 @@ jobs:
           make KCONFIG_CONFIG=arch/arm64/configs/config-wsl-arm64 -j$(echo `nproc` + 1 | bc)
           cp arch/arm64/boot/Image ../${{ matrix.image-name }}
           fi
-          echo ""
-          echo "Done"
 
-      - name: Generate kernel modules
+      - name: Generate Kernel Modules
         run: |
           cd linux
           IFS=- read -r var1 var2 var3 version <<< ${{ github.ref_name }}
           mkdir -p ${{ matrix.image-name }}-addon_install && make modules_install INSTALL_MOD_PATH=${{ matrix.image-name }}-addon_install
           rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/build
-          if [ ${{ matrix.arch }} == "x86" ]
-          then
-          cd ..
-          echo ""
-          echo "Download ZFS"
-          echo ""
-          git clone https://github.com/openzfs/zfs.git --depth 1 zfs
-          cd zfs
-          ./autogen.sh
-          ./configure --with-linux="$(pwd)/../linux" --with-linux-obj="$(pwd)/../linux"
-          make -j$(echo `nproc` + 1 | bc)
-          fi
-          echo ""
-          echo "Done"
 
-      - name: Generate kernel headers and documents
+      - name: Generate Kernel Headers and Documents
         run: |
           cd linux
           IFS=- read -r var1 var2 var3 version <<< ${{ github.ref_name }}
@@ -152,22 +138,30 @@ jobs:
           fi
           cp -r Documentation $addon_path/Documentation
           rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/build/${{ matrix.image-name }}-addon_install
-          echo ""
-          echo "Done"
 
-      - name: Generate kernel addon package
+      - name: Download ZFS
+        run: |
+          git clone https://github.com/openzfs/zfs.git --depth 1 zfs
+
+      - name: Build ZFS
+        run: |
+          cd zfs
+          ./autogen.sh
+          ./configure --with-linux="$(pwd)/../linux" --with-linux-obj="$(pwd)/../linux"
+          make -j$(echo `nproc` + 1 | bc)
+
+      - name: Generate ZFS Kernel Module
         run: |
           IFS=- read -r var1 var2 var3 version <<< ${{ github.ref_name }}
-          if [ ${{ matrix.arch }} == "x86" ]
-          then
           mkdir -p linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/extra
           find zfs/module -name "*.ko" -exec cp {} linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/extra \;
-          fi
+
+      - name: Generate Kernel Addon Package
+        run: |
+          IFS=- read -r var1 var2 var3 version <<< ${{ github.ref_name }}
           cd linux
           sudo ./.github/scripts/gen_modules_vhdx.sh "$PWD/${{ matrix.image-name }}-addon_install/" "$version-WSL2-STABLE+" ${{ matrix.image-name }}-addon.vhdx
           mv ${{ matrix.image-name }}-addon.vhdx ../
-          echo ""
-          echo "Done"
 
       - name: Generate SHA-256 Checksum
         id: gen-sha-256
@@ -186,10 +180,8 @@ jobs:
           fi
           sha256sum ${{ matrix.image-name }} > ${{ matrix.image-name }}.sha256
           sha256sum ${{ matrix.image-name }}-addon.vhdx > ${{ matrix.image-name }}-addon.vhdx.sha256
-          echo ""
-          echo "Done"
 
-      - name: Upload kernel Images
+      - name: Upload Kernel Images
         uses: actions/upload-artifact@main
         with:
           name: ${{ matrix.image-name }}
