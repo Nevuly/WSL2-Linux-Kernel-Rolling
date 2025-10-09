@@ -11,7 +11,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: nevuly/nevuly-dev-base:arch
+      image: nevuly/nevuly-dev-base:build
       options: --privileged
     outputs:
       X86_IMAGE_SHA: ${{ steps.gen-sha-256.outputs.X86_IMAGE_SHA }}
