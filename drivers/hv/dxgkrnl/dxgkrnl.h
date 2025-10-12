@@ -1028,7 +1028,7 @@ void dxgk_validate_ioctls(void);
 
 #else
 
-#define DXG_TRACE(...)
+#define DXG_TRACE(...) do {} while (0)
 #define DXG_ERR(fmt, ...) do {					\
 	dev_err(DXGDEV, "%s: " fmt, __func__, ##__VA_ARGS__);	\
 } while (0)
