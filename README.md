@@ -5,28 +5,28 @@
 
 Maintainer: Yang Jeong Hun (Nevuly)
 
-# Current Kernel Status
+## Current Kernel Status
 | Kernel Version | Status |
 |:--------------:|:------:|
 | [Linux 6.17.x][wsl2-kernel-6.17] | Stable Support |
 
-# Introduction
+## Introduction
 The [WSL2-Linux-Kernel-Rolling][wsl2-kernel-rolling] repo contains the latest stable kernel source code and
 configuration files for the [WSL2][about-wsl2].
 
 This kernel is automatically built via [Github Actions][gh-actions] CI whenever a [newer stable kernel is released][kernel-stable].
 
-# Install Instructions
+## Install Instructions
 Please see this [wiki][wiki].
 
-# Reporting Bugs
+## Reporting Bugs
 If you discover an issue relating to WSL or the WSL2 kernel, please report it on
 the [Issues tab][issue].
 
-# Feature Requests
+## Feature Requests
 If you want to fix a bug or add new features, Please use the [Pull Request][pr].
 
-# Build Instructions
+## Build Instructions
 Instructions for building WSL2 kernel with an Arch Linux distribution are
 as follows:
 
@@ -43,7 +43,7 @@ as follows:
 4. Save the module to a separate folder (Optional. Only for local build):  
    `$ sudo make modules_install`
 
-# Credits
+## Credits
  * The Linux community who created a awesome kernel.
  * Microsoft which produced WSL2 and dxgkrnl patches.
 
