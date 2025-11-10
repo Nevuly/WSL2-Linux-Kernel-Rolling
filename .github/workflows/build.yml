@@ -16,16 +16,26 @@ jobs:
     outputs:
       X86_IMAGE_SHA: ${{ steps.gen-sha-256.outputs.X86_IMAGE_SHA }}
       X86_ADDON_SHA: ${{ steps.gen-sha-256.outputs.X86_ADDON_SHA }}
+      X86_RT_IMAGE_SHA: ${{ steps.gen-sha-256.outputs.X86_RT_IMAGE_SHA }}
+      X86_RT_ADDON_SHA: ${{ steps.gen-sha-256.outputs.X86_RT_ADDON_SHA }}
       ARM64_IMAGE_SHA: ${{ steps.gen-sha-256.outputs.ARM64_IMAGE_SHA }}
       ARM64_ADDON_SHA: ${{ steps.gen-sha-256.outputs.ARM64_ADDON_SHA }}
+      ARM64_RT_IMAGE_SHA: ${{ steps.gen-sha-256.outputs.ARM64_RT_IMAGE_SHA }}
+      ARM64_RT_ADDON_SHA: ${{ steps.gen-sha-256.outputs.ARM64_RT_ADDON_SHA }}
     strategy:
       matrix:
         include:
           - arch: x86
             image-name: bzImage-x86_64
             os: ubuntu-24.04
+          - arch: x86-rt
+            image-name: bzImage-x86_64-rt
+            os: ubuntu-24.04
           - arch: arm64
             image-name: Image-arm64
+            os: ubuntu-24.04-arm
+          - arch: arm64-rt
+            image-name: Image-arm64-rt
             os: ubuntu-24.04-arm
 
     steps:
@@ -47,8 +57,16 @@ jobs:
           then
           make KCONFIG_CONFIG=arch/x86/configs/config-wsl-x86 -j$(echo `nproc` + 1 | bc)
           cp arch/x86/boot/bzImage ../${{ matrix.image-name }}
-          else
+          elif [ ${{ matrix.arch }} == "x86-rt" ]
+          then
+          make KCONFIG_CONFIG=arch/x86/configs/config-wsl-x86-rt -j$(echo `nproc` + 1 | bc)
+          cp arch/x86/boot/bzImage ../${{ matrix.image-name }}
+          elif [ ${{ matrix.arch }} == "arm64" ]
+          then
           make KCONFIG_CONFIG=arch/arm64/configs/config-wsl-arm64 -j$(echo `nproc` + 1 | bc)
+          cp arch/arm64/boot/Image ../${{ matrix.image-name }}
+          else
+          make KCONFIG_CONFIG=arch/arm64/configs/config-wsl-arm64-rt -j$(echo `nproc` + 1 | bc)
           cp arch/arm64/boot/Image ../${{ matrix.image-name }}
           fi
 
@@ -67,20 +85,20 @@ jobs:
           mkdir -p $addon_path
           install -Dt "$addon_path" -m644 Makefile Module.symvers System.map vmlinux
           install -Dt "$addon_path/kernel" -m644 kernel/Makefile
-          if [ ${{ matrix.arch }} == "x86" ]
+          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "x86-rt" ]
           then
           install -Dt "$addon_path/arch/x86" -m644 arch/x86/Makefile
           else
           install -Dt "$addon_path/arch/arm64" -m644 arch/arm64/Makefile
           fi
           cp -t "$addon_path" -a scripts
-          if [ ${{ matrix.arch }} == "x86" ]
+          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "x86-rt" ]
           then
           install -Dt "$addon_path/tools/objtool" tools/objtool/objtool
           install -Dt "$addon_path/tools/bpf/resolve_btfids" tools/bpf/resolve_btfids/resolve_btfids
           fi
           cp -t "$addon_path" -a include
-          if [ ${{ matrix.arch }} == "x86" ]
+          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "x86-rt" ]
           then
           cp -t "$addon_path/arch/x86" -a arch/x86/include
           install -Dt "$addon_path/arch/x86/kernel" -m644 arch/x86/kernel/asm-offsets.s
@@ -99,7 +117,7 @@ jobs:
           install -Dt "$addon_path/drivers/iio/common/hid-sensors" -m644 drivers/iio/common/hid-sensors/*.h
           find . -name 'Kconfig*' -exec install -Dm644 {} "$addon_path/{}" \;
           export arch
-          if [ ${{ matrix.arch }} == "x86" ]
+          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "x86-rt" ]
           then
           for arch in "$addon_path"/arch/*/; do
             [[ $arch = */x86/ ]] && continue
@@ -132,7 +150,7 @@ jobs:
                 strip -v $STRIP_SHARED $file ;;
             esac
           done < <(find "$addon_path" -type f -perm -u+x ! -name vmlinux -print0)
-          if [ ${{ matrix.arch }} == "x86" ]
+          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "x86-rt" ]
           then
           strip -v $STRIP_STATIC "$addon_path/vmlinux"
           fi
@@ -172,11 +190,23 @@ jobs:
           read -r x86AddonSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-addon.vhdx)"
           echo "X86_IMAGE_SHA=$x86ImageSHA" >> $GITHUB_OUTPUT
           echo "X86_ADDON_SHA=$x86AddonSHA" >> $GITHUB_OUTPUT
-          else
+          elif [ ${{ matrix.arch }} == "x86-rt" ]
+          then
+          read -r x86RTImageSHA rest <<< "$(sha256sum ${{ matrix.image-name }})"
+          read -r x86RTAddonSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-addon.vhdx)"
+          echo "X86_RT_IMAGE_SHA=$x86RTImageSHA" >> $GITHUB_OUTPUT
+          echo "X86_RT_ADDON_SHA=$x86RTAddonSHA" >> $GITHUB_OUTPUT
+          elif [ ${{ matrix.arch }} == "arm64" ]
+          then
           read -r arm64ImageSHA rest <<< "$(sha256sum ${{ matrix.image-name }})"
           read -r arm64AddonSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-addon.vhdx)"
           echo "ARM64_IMAGE_SHA=$arm64ImageSHA" >> $GITHUB_OUTPUT
           echo "ARM64_ADDON_SHA=$arm64AddonSHA" >> $GITHUB_OUTPUT
+          else
+          read -r arm64RTImageSHA rest <<< "$(sha256sum ${{ matrix.image-name }})"
+          read -r arm64RTAddonSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-addon.vhdx)"
+          echo "ARM64_RT_IMAGE_SHA=$arm64RTImageSHA" >> $GITHUB_OUTPUT
+          echo "ARM64_RT_ADDON_SHA=$arm64RTAddonSHA" >> $GITHUB_OUTPUT
           fi
           sha256sum ${{ matrix.image-name }} > ${{ matrix.image-name }}.sha256
           sha256sum ${{ matrix.image-name }}-addon.vhdx > ${{ matrix.image-name }}-addon.vhdx.sha256
@@ -197,8 +227,12 @@ jobs:
     env:
       X86_IMAGE_SHA: ${{ needs.build.outputs.X86_IMAGE_SHA }}
       X86_ADDON_SHA: ${{ needs.build.outputs.X86_ADDON_SHA }}
+      X86_RT_IMAGE_SHA: ${{ needs.build.outputs.X86_RT_IMAGE_SHA }}
+      X86_RT_ADDON_SHA: ${{ needs.build.outputs.X86_RT_ADDON_SHA }}
       ARM64_IMAGE_SHA: ${{ needs.build.outputs.ARM64_IMAGE_SHA }}
       ARM64_ADDON_SHA: ${{ needs.build.outputs.ARM64_ADDON_SHA }}
+      ARM64_RT_IMAGE_SHA: ${{ needs.build.outputs.ARM64_RT_IMAGE_SHA }}
+      ARM64_RT_ADDON_SHA: ${{ needs.build.outputs.ARM64_RT_ADDON_SHA }}
 
     steps:
       - uses: actions/checkout@main
@@ -222,8 +256,12 @@ jobs:
             |:--------------:|:------:|
             | bzImage-x86_64 | ${{ env.X86_IMAGE_SHA }} |
             | bzImage-x86_64-addon.vhdx | ${{ env.X86_ADDON_SHA }} |
+            | bzImage-x86_64-rt | ${{ env.X86_RT_IMAGE_SHA }} |
+            | bzImage-x86_64-rt-addon.vhdx | ${{ env.X86_RT_ADDON_SHA }} |
             | Image-arm64 | ${{ env.ARM64_IMAGE_SHA }} |
             | Image-arm64-addon.vhdx | ${{ env.ARM64_ADDON_SHA }} |
+            | Image-arm64-rt | ${{ env.ARM64_RT_IMAGE_SHA }} |
+            | Image-arm64-rt-addon.vhdx | ${{ env.ARM64_RT_ADDON_SHA }} |
 
             ### **How to install this kernel or kernel addon package in WSL2?**
              - Please see this [wiki](https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/wiki/Install-Instructions).
