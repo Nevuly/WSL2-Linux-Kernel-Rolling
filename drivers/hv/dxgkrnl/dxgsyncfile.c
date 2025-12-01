@@ -446,8 +446,7 @@ static bool dxgdmafence_signaled(struct dma_fence *fence)
 	syncpoint = to_syncpoint(fence);
 	if (syncpoint == 0)
 		return true;
-	return __dma_fence_is_later(syncpoint->fence_value, fence->seqno,
-				    fence->ops);
+	return __dma_fence_is_later(fence, syncpoint->fence_value, fence->seqno);
 }
 
 static bool dxgdmafence_enable_signaling(struct dma_fence *fence)
