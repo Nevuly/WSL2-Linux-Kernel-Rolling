@@ -1,4 +1,4 @@
-# Rolling Release LTS Kernel for WSL2
+# Rolling Release Stable Kernel for WSL2
 
 Maintainer: Yang Jeong Hun (Nevuly)
 
