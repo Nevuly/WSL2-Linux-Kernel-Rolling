@@ -75,13 +75,23 @@ jobs:
           cd linux
           IFS=- read -r var1 var2 var3 version <<< ${{ github.ref_name }}
           mkdir -p ${{ matrix.image-name }}-addon_install && make modules_install INSTALL_MOD_PATH=${{ matrix.image-name }}-addon_install
+          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]
+          then
           rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/build
+          else
+          rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-RT-STABLE+/build
+          fi
 
       - name: Generate Kernel Headers and Documents
         run: |
           cd linux
           IFS=- read -r var1 var2 var3 version <<< ${{ github.ref_name }}
+          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]
+          then
           export addon_path=${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/build
+          else
+          export addon_path=${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-RT-STABLE+/build
+          fi
           mkdir -p $addon_path
           install -Dt "$addon_path" -m644 Makefile Module.symvers System.map vmlinux
           install -Dt "$addon_path/kernel" -m644 kernel/Makefile
@@ -156,7 +166,12 @@ jobs:
           strip -v $STRIP_STATIC "$addon_path/vmlinux"
           fi
           cp -r Documentation $addon_path/Documentation
+          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]
+          then
           rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/build/${{ matrix.image-name }}-addon_install
+          else
+          rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-RT-STABLE+/build/${{ matrix.image-name }}-addon_install
+          fi
 
       # - name: Download ZFS
       #   run: |
@@ -172,14 +187,25 @@ jobs:
       # - name: Generate ZFS Kernel Module
       #   run: |
       #     IFS=- read -r var1 var2 var3 version <<< ${{ github.ref_name }}
+      #     if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]
+      #     then
       #     mkdir -p linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/extra
       #     find zfs/module -name "*.ko" -exec cp {} linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/extra \;
+      #     else
+      #     mkdir -p linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-RT-STABLE+/extra
+      #     find zfs/module -name "*.ko" -exec cp {} linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-RT-STABLE+/extra \;
+      #     fi
 
       - name: Generate Kernel Addon Package
         run: |
           IFS=- read -r var1 var2 var3 version <<< ${{ github.ref_name }}
           cd linux
+          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]
+          then
           sudo ./.github/scripts/gen_modules_vhdx.sh "$PWD/${{ matrix.image-name }}-addon_install/" "$version-WSL2-STABLE+" ${{ matrix.image-name }}-addon.vhdx
+          else
+          sudo ./.github/scripts/gen_modules_vhdx.sh "$PWD/${{ matrix.image-name }}-addon_install/" "$version-WSL2-RT-STABLE+" ${{ matrix.image-name }}-addon.vhdx
+          fi
           mv ${{ matrix.image-name }}-addon.vhdx ../
 
       - name: Generate SHA-256 Checksum
