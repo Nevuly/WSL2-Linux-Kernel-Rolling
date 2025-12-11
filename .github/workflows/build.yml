@@ -173,28 +173,28 @@ jobs:
           rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-RT-STABLE+/build/${{ matrix.image-name }}-addon_install
           fi
 
-      # - name: Download ZFS
-      #   run: |
-      #     git clone https://github.com/openzfs/zfs.git --depth 1 zfs
+      - name: Download ZFS
+        run: |
+          git clone https://github.com/openzfs/zfs.git --depth 1 zfs
 
-      # - name: Build ZFS
-      #   run: |
-      #     cd zfs
-      #     ./autogen.sh
-      #     ./configure --with-linux="$(pwd)/../linux" --with-linux-obj="$(pwd)/../linux"
-      #     make -j$(echo `nproc` + 1 | bc)
+      - name: Build ZFS
+        run: |
+          cd zfs
+          ./autogen.sh
+          ./configure --with-linux="$(pwd)/../linux" --with-linux-obj="$(pwd)/../linux"
+          make -j$(echo `nproc` + 1 | bc)
 
-      # - name: Generate ZFS Kernel Module
-      #   run: |
-      #     IFS=- read -r var1 var2 var3 version <<< ${{ github.ref_name }}
-      #     if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]
-      #     then
-      #     mkdir -p linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/extra
-      #     find zfs/module -name "*.ko" -exec cp {} linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/extra \;
-      #     else
-      #     mkdir -p linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-RT-STABLE+/extra
-      #     find zfs/module -name "*.ko" -exec cp {} linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-RT-STABLE+/extra \;
-      #     fi
+      - name: Generate ZFS Kernel Module
+        run: |
+          IFS=- read -r var1 var2 var3 version <<< ${{ github.ref_name }}
+          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]
+          then
+          mkdir -p linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/extra
+          find zfs/module -name "*.ko" -exec cp {} linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/extra \;
+          else
+          mkdir -p linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-RT-STABLE+/extra
+          find zfs/module -name "*.ko" -exec cp {} linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-RT-STABLE+/extra \;
+          fi
 
       - name: Generate Kernel Addon Package
         run: |
