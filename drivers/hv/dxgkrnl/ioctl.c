@@ -17,6 +17,7 @@
 #include <linux/anon_inodes.h>
 #include <linux/mman.h>
 #include <linux/pid_namespace.h>
+#include <linux/vmalloc.h>
 
 #include "dxgkrnl.h"
 #include "dxgvmbus.h"
