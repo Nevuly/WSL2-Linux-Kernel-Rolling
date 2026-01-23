@@ -1,0 +1,21 @@
+name: Stable Kernel CI
+
+on:
+  push:
+    tags:
+      - 'linux-wsl-stable-6.18.[0-9]+'
+  pull_request:
+    branches:
+      - 'wsl-6.18-rolling'
+
+run-name: Stable Release Build ${{ github.ref_name }}
+
+jobs:
+  call-core-workflow:
+    name: Stable Kernel Build
+    uses: Nevuly/WSL2-Linux-Kernel-Rolling/.github/workflows/build.yml@master
+    with:
+      tag_name: ${{ github.ref_name }}
+      build_zfs: true
+      is_normal_build: ${{ github.event_name != 'pull_request' }}
+    secrets: inherit
