@@ -17,7 +17,7 @@ on:
 
 jobs:
   build:
-    name: Build (${{ matrix.arch }}, ${{ matrix.image-name }})
+    name: ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     container:
       image: nevuly/nevuly-dev-base:build
