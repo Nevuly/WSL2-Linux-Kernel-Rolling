@@ -290,15 +290,6 @@ jobs:
             >
             > If you have any issues, please leave an issue on the [issue tab](https://github.com/Nevuly/WSL2-Rolling-Kernel-Issue/issues)!
 
-            > [!NOTE]
-            > The Long-Term Support for the 6.18 kernel has been confirmed.
-            >
-            > Therefore, the 6.18 kernel is now available on the LTS channel as well.
-            >
-            > If you wish to use the LTS-supported 6.18 kernel, please move to the [LTS](https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling-LTS) channel!
-            >
-            > If you are waiting for the next version, please stay on the current channel!
-
             ### **Hash Information**
             | File Name | SHA-256 Checksum |
             |:--------------:|:------:|
