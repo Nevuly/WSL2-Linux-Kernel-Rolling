@@ -703,8 +703,14 @@ static s64 hvs_stream_has_data(struct vsock_sock *vsk)
 	switch (hvs_channel_readable_payload(hvs->chan)) {
 	case 1:
 		need_refill = !hvs->recv_desc;
+		/*
+		 * recv_desc is not null, but recv_data_len is 0.
+		 * The current packet is drained but the ring buffer has more data.
+		 * return 1 to trigger EPOLLIN so recvmsg() can clean up the
+		 * current descriptor and fetch the next packet.
+		 */
 		if (!need_refill)
-			return -EIO;
+			return 1;
 
 		hvs->recv_desc = hv_pkt_iter_first(hvs->chan);
 		if (!hvs->recv_desc)
