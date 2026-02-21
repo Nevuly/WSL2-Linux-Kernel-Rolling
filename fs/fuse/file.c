@@ -374,8 +374,18 @@ void fuse_file_release(struct inode *inode, struct fuse_file *ff,
 	 * aio and closes the fd before the aio completes.  Since aio takes its
 	 * own ref to the file, the IO completion has to drop the ref, which is
 	 * how the fuse server can end up closing its clients' files.
+	 *
+	 * However, forcing asynchronous file put for all FUSE mounts breaks
+	 * environments like VirtioFS, where delaying the release disrupts
+	 * the shutdown sequence and socket synchronization. Thus, we restrict
+	 * the async workaround to fuseblk (which sets FS_REQUIRES_DEV),
+	 * and restore the original behavior based on the destroy state for others.
 	 */
-	fuse_file_put(ff, false);
+	if (ff->fm->sb->s_type->fs_flags & FS_REQUIRES_DEV) {
+		fuse_file_put(ff, false);
+	} else {
+		fuse_file_put(ff, ff->fm->fc->destroy);
+	}
 }
 
 void fuse_release_common(struct file *file, bool isdir)
