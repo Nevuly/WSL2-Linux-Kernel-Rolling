@@ -844,14 +844,13 @@ static int cxl_decoder_commit(struct cxl_decoder *cxld)
 	scoped_guard(rwsem_read, &cxl_rwsem.dpa)
 		setup_hw_decoder(cxld, hdm);
 
-	port->commit_end++;
 	rc = cxld_await_commit(hdm, cxld->id);
 	if (rc) {
 		dev_dbg(&port->dev, "%s: error %d committing decoder\n",
 			dev_name(&cxld->dev), rc);
-		cxld->reset(cxld);
 		return rc;
 	}
+	port->commit_end++;
 	cxld->flags |= CXL_DECODER_F_ENABLE;
 
 	return 0;
@@ -966,7 +965,7 @@ static int cxl_setup_hdm_decoder_from_dvsec(
 	rc = devm_cxl_dpa_reserve(cxled, *dpa_base, len, 0);
 	if (rc) {
 		dev_err(&port->dev,
-			"decoder%d.%d: Failed to reserve DPA range %#llx - %#llx\n (%d)",
+			"decoder%d.%d: Failed to reserve DPA range %#llx - %#llx: %d\n",
 			port->id, cxld->id, *dpa_base, *dpa_base + len - 1, rc);
 		return rc;
 	}
@@ -1117,7 +1116,7 @@ static int init_hdm_decoder(struct cxl_port *port, struct cxl_decoder *cxld,
 	rc = devm_cxl_dpa_reserve(cxled, *dpa_base + skip, dpa_size, skip);
 	if (rc) {
 		dev_err(&port->dev,
-			"decoder%d.%d: Failed to reserve DPA range %#llx - %#llx\n (%d)",
+			"decoder%d.%d: Failed to reserve DPA range %#llx - %#llx: %d\n",
 			port->id, cxld->id, *dpa_base,
 			*dpa_base + dpa_size + skip - 1, rc);
 		return rc;

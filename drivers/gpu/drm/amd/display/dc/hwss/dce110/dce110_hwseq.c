@@ -659,20 +659,6 @@ void dce110_update_info_frame(struct pipe_ctx *pipe_ctx)
 	}
 }
 
-static void
-dce110_dac_encoder_control(struct pipe_ctx *pipe_ctx, bool enable)
-{
-	struct dc_link *link = pipe_ctx->stream->link;
-	struct dc_bios *bios = link->ctx->dc_bios;
-	struct bp_encoder_control encoder_control = {0};
-
-	encoder_control.action = enable ? ENCODER_CONTROL_ENABLE : ENCODER_CONTROL_DISABLE;
-	encoder_control.engine_id = link->link_enc->analog_engine;
-	encoder_control.pixel_clock = pipe_ctx->stream->timing.pix_clk_100hz / 10;
-
-	bios->funcs->encoder_control(bios, &encoder_control);
-}
-
 void dce110_enable_stream(struct pipe_ctx *pipe_ctx)
 {
 	enum dc_lane_count lane_count =
@@ -703,8 +689,6 @@ void dce110_enable_stream(struct pipe_ctx *pipe_ctx)
 
 	tg->funcs->set_early_control(tg, early_control);
 
-	if (dc_is_rgb_signal(pipe_ctx->stream->signal))
-		dce110_dac_encoder_control(pipe_ctx, true);
 }
 
 static enum bp_result link_transmitter_control(
@@ -1218,9 +1202,6 @@ void dce110_disable_stream(struct pipe_ctx *pipe_ctx)
 		dccg->funcs->disable_symclk_se(dccg, stream_enc->stream_enc_inst,
 					       link_enc->transmitter - TRANSMITTER_UNIPHY_A);
 	}
-
-	if (dc_is_rgb_signal(pipe_ctx->stream->signal))
-		dce110_dac_encoder_control(pipe_ctx, false);
 }
 
 void dce110_unblank_stream(struct pipe_ctx *pipe_ctx,
@@ -1603,25 +1584,6 @@ static enum dc_status dce110_enable_stream_timing(
 	return DC_OK;
 }
 
-static void
-dce110_select_crtc_source(struct pipe_ctx *pipe_ctx)
-{
-	struct dc_link *link = pipe_ctx->stream->link;
-	struct dc_bios *bios = link->ctx->dc_bios;
-	struct bp_crtc_source_select crtc_source_select = {0};
-	enum engine_id engine_id = link->link_enc->preferred_engine;
-
-	if (dc_is_rgb_signal(pipe_ctx->stream->signal))
-		engine_id = link->link_enc->analog_engine;
-
-	crtc_source_select.controller_id = CONTROLLER_ID_D0 + pipe_ctx->stream_res.tg->inst;
-	crtc_source_select.color_depth = pipe_ctx->stream->timing.display_color_depth;
-	crtc_source_select.engine_id = engine_id;
-	crtc_source_select.sink_signal = pipe_ctx->stream->signal;
-
-	bios->funcs->select_crtc_source(bios, &crtc_source_select);
-}
-
 enum dc_status dce110_apply_single_controller_ctx_to_hw(
 		struct pipe_ctx *pipe_ctx,
 		struct dc_state *context,
@@ -1639,10 +1601,6 @@ enum dc_status dce110_apply_single_controller_ctx_to_hw(
 
 	if (hws->funcs.disable_stream_gating) {
 		hws->funcs.disable_stream_gating(dc, pipe_ctx);
-	}
-
-	if (pipe_ctx->stream->signal == SIGNAL_TYPE_RGB) {
-		dce110_select_crtc_source(pipe_ctx);
 	}
 
 	if (pipe_ctx->stream_res.audio != NULL) {
@@ -1724,8 +1682,7 @@ enum dc_status dce110_apply_single_controller_ctx_to_hw(
 		pipe_ctx->stream_res.tg->funcs->set_static_screen_control(
 				pipe_ctx->stream_res.tg, event_triggers, 2);
 
-	if (!dc_is_virtual_signal(pipe_ctx->stream->signal) &&
-		!dc_is_rgb_signal(pipe_ctx->stream->signal))
+	if (!dc_is_virtual_signal(pipe_ctx->stream->signal))
 		pipe_ctx->stream_res.stream_enc->funcs->dig_connect_to_otg(
 			pipe_ctx->stream_res.stream_enc,
 			pipe_ctx->stream_res.tg->inst);
@@ -3312,6 +3269,15 @@ void dce110_enable_tmds_link_output(struct dc_link *link,
 	link->phy_state.symclk_state = SYMCLK_ON_TX_ON;
 }
 
+static void dce110_enable_analog_link_output(
+		struct dc_link *link,
+		uint32_t pix_clk_100hz)
+{
+	link->link_enc->funcs->enable_analog_output(
+			link->link_enc,
+			pix_clk_100hz);
+}
+
 void dce110_enable_dp_link_output(
 		struct dc_link *link,
 		const struct link_resource *link_res,
@@ -3449,6 +3415,7 @@ static const struct hw_sequencer_funcs dce110_funcs = {
 	.enable_lvds_link_output = dce110_enable_lvds_link_output,
 	.enable_tmds_link_output = dce110_enable_tmds_link_output,
 	.enable_dp_link_output = dce110_enable_dp_link_output,
+	.enable_analog_link_output = dce110_enable_analog_link_output,
 	.disable_link_output = dce110_disable_link_output,
 };
 

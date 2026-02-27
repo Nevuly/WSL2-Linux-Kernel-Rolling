@@ -1187,7 +1187,6 @@ void panthor_fw_pre_reset(struct panthor_device *ptdev, bool on_hang)
 		else
 			ptdev->reset.fast = true;
 	}
-	panthor_fw_stop(ptdev);
 
 	panthor_job_irq_suspend(&ptdev->fw->irq);
 	panthor_fw_stop(ptdev);
@@ -1260,10 +1259,6 @@ void panthor_fw_unplug(struct panthor_device *ptdev)
 		/* Make sure the IRQ handler cannot be called after that point. */
 		if (ptdev->fw->irq.irq)
 			panthor_job_irq_suspend(&ptdev->fw->irq);
-
-		panthor_fw_halt_mcu(ptdev);
-		if (!panthor_fw_wait_mcu_halted(ptdev))
-			drm_warn(&ptdev->base, "Failed to halt MCU on unplug");
 
 		panthor_fw_stop(ptdev);
 	}

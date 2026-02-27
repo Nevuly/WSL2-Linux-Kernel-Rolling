@@ -88,6 +88,9 @@ struct pcie_tlp_log;
 #define PCI_BUS_BRIDGE_MEM_WINDOW	1
 #define PCI_BUS_BRIDGE_PREF_MEM_WINDOW	2
 
+#define PCI_EXP_AER_FLAGS	(PCI_EXP_DEVCTL_CERE | PCI_EXP_DEVCTL_NFERE | \
+				 PCI_EXP_DEVCTL_FERE | PCI_EXP_DEVCTL_URRE)
+
 extern const unsigned char pcie_link_speed[];
 extern bool pci_early_dump;
 
@@ -103,17 +106,21 @@ bool pcie_cap_has_rtctl(const struct pci_dev *dev);
  * @read_cfg: Function pointer for reading PCI config space
  * @start: Starting position to begin search
  * @cap: Capability ID to find
+ * @prev_ptr: Pointer to store position of preceding capability (optional)
  * @args: Arguments to pass to read_cfg function
  *
- * Search the capability list in PCI config space to find @cap.
+ * Search the capability list in PCI config space to find @cap. If
+ * found, update *prev_ptr with the position of the preceding capability
+ * (if prev_ptr != NULL)
  * Implements TTL (time-to-live) protection against infinite loops.
  *
  * Return: Position of the capability if found, 0 otherwise.
  */
-#define PCI_FIND_NEXT_CAP(read_cfg, start, cap, args...)		\
+#define PCI_FIND_NEXT_CAP(read_cfg, start, cap, prev_ptr, args...)	\
 ({									\
 	int __ttl = PCI_FIND_CAP_TTL;					\
-	u8 __id, __found_pos = 0;					\
+	u8 __id,  __found_pos = 0;					\
+	u8 __prev_pos = (start);					\
 	u8 __pos = (start);						\
 	u16 __ent;							\
 									\
@@ -132,9 +139,12 @@ bool pcie_cap_has_rtctl(const struct pci_dev *dev);
 									\
 		if (__id == (cap)) {					\
 			__found_pos = __pos;				\
+			if (prev_ptr != NULL)				\
+				*(u8 *)prev_ptr = __prev_pos;		\
 			break;						\
 		}							\
 									\
+		__prev_pos = __pos;					\
 		__pos = FIELD_GET(PCI_CAP_LIST_NEXT_MASK, __ent);	\
 	}								\
 	__found_pos;							\
@@ -146,21 +156,26 @@ bool pcie_cap_has_rtctl(const struct pci_dev *dev);
  * @read_cfg: Function pointer for reading PCI config space
  * @start: Starting position to begin search (0 for initial search)
  * @cap: Extended capability ID to find
+ * @prev_ptr: Pointer to store position of preceding capability (optional)
  * @args: Arguments to pass to read_cfg function
  *
  * Search the extended capability list in PCI config space to find @cap.
+ * If found, update *prev_ptr with the position of the preceding capability
+ * (if prev_ptr != NULL)
  * Implements TTL protection against infinite loops using a calculated
  * maximum search count.
  *
  * Return: Position of the capability if found, 0 otherwise.
  */
-#define PCI_FIND_NEXT_EXT_CAP(read_cfg, start, cap, args...)		\
+#define PCI_FIND_NEXT_EXT_CAP(read_cfg, start, cap, prev_ptr, args...)	\
 ({									\
 	u16 __pos = (start) ?: PCI_CFG_SPACE_SIZE;			\
 	u16 __found_pos = 0;						\
+	u16 __prev_pos;							\
 	int __ttl, __ret;						\
 	u32 __header;							\
 									\
+	__prev_pos = __pos;						\
 	__ttl = (PCI_CFG_SPACE_EXP_SIZE - PCI_CFG_SPACE_SIZE) / 8;	\
 	while (__ttl-- > 0 && __pos >= PCI_CFG_SPACE_SIZE) {		\
 		__ret = read_cfg##_dword(args, __pos, &__header);	\
@@ -172,9 +187,12 @@ bool pcie_cap_has_rtctl(const struct pci_dev *dev);
 									\
 		if (PCI_EXT_CAP_ID(__header) == (cap) && __pos != start) {\
 			__found_pos = __pos;				\
+			if (prev_ptr != NULL)				\
+				*(u16 *)prev_ptr = __prev_pos;		\
 			break;						\
 		}							\
 									\
+		__prev_pos = __pos;					\
 		__pos = PCI_EXT_CAP_NEXT(__header);			\
 	}								\
 	__found_pos;							\

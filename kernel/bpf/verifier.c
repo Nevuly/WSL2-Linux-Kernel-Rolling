@@ -16827,6 +16827,7 @@ static void sync_linked_regs(struct bpf_verifier_state *vstate, struct bpf_reg_s
 		} else {
 			s32 saved_subreg_def = reg->subreg_def;
 			s32 saved_off = reg->off;
+			u32 saved_id = reg->id;
 
 			fake_reg.type = SCALAR_VALUE;
 			__mark_reg_known(&fake_reg, (s32)reg->off - (s32)known_reg->off);
@@ -16834,10 +16835,11 @@ static void sync_linked_regs(struct bpf_verifier_state *vstate, struct bpf_reg_s
 			/* reg = known_reg; reg += delta */
 			copy_register_state(reg, known_reg);
 			/*
-			 * Must preserve off, id and add_const flag,
+			 * Must preserve off, id and subreg_def flag,
 			 * otherwise another sync_linked_regs() will be incorrect.
 			 */
 			reg->off = saved_off;
+			reg->id = saved_id;
 			reg->subreg_def = saved_subreg_def;
 
 			scalar32_min_max_add(reg, &fake_reg);
@@ -19835,8 +19837,10 @@ static int is_state_visited(struct bpf_verifier_env *env, int insn_idx)
 				}
 			}
 			if (bpf_calls_callback(env, insn_idx)) {
-				if (states_equal(env, &sl->state, cur, RANGE_WITHIN))
+				if (states_equal(env, &sl->state, cur, RANGE_WITHIN)) {
+					loop = true;
 					goto hit;
+				}
 				goto skip_inf_loop_check;
 			}
 			/* attempt to detect infinite loop to avoid unnecessary doomed work */
@@ -20611,17 +20615,19 @@ static int do_check(struct bpf_verifier_env *env)
 			 * may skip a nospec patched-in after the jump. This can
 			 * currently never happen because nospec_result is only
 			 * used for the write-ops
-			 * `*(size*)(dst_reg+off)=src_reg|imm32` which must
-			 * never skip the following insn. Still, add a warning
-			 * to document this in case nospec_result is used
-			 * elsewhere in the future.
+			 * `*(size*)(dst_reg+off)=src_reg|imm32` and helper
+			 * calls. These must never skip the following insn
+			 * (i.e., bpf_insn_successors()'s opcode_info.can_jump
+			 * is false). Still, add a warning to document this in
+			 * case nospec_result is used elsewhere in the future.
 			 *
 			 * All non-branch instructions have a single
 			 * fall-through edge. For these, nospec_result should
 			 * already work.
 			 */
-			if (verifier_bug_if(BPF_CLASS(insn->code) == BPF_JMP ||
-					    BPF_CLASS(insn->code) == BPF_JMP32, env,
+			if (verifier_bug_if((BPF_CLASS(insn->code) == BPF_JMP ||
+					     BPF_CLASS(insn->code) == BPF_JMP32) &&
+					    BPF_OP(insn->code) != BPF_CALL, env,
 					    "speculation barrier after jump instruction may not have the desired effect"))
 				return -EFAULT;
 process_bpf_exit:
@@ -20679,28 +20685,28 @@ static int find_btf_percpu_datasec(struct btf *btf)
 }
 
 /*
- * Add btf to the used_btfs array and return the index. (If the btf was
- * already added, then just return the index.) Upon successful insertion
- * increase btf refcnt, and, if present, also refcount the corresponding
- * kernel module.
+ * Add btf to the env->used_btfs array. If needed, refcount the
+ * corresponding kernel module. To simplify caller's logic
+ * in case of error or if btf was added before the function
+ * decreases the btf refcount.
  */
 static int __add_used_btf(struct bpf_verifier_env *env, struct btf *btf)
 {
 	struct btf_mod_pair *btf_mod;
+	int ret = 0;
 	int i;
 
 	/* check whether we recorded this BTF (and maybe module) already */
 	for (i = 0; i < env->used_btf_cnt; i++)
 		if (env->used_btfs[i].btf == btf)
-			return i;
+			goto ret_put;
 
 	if (env->used_btf_cnt >= MAX_USED_BTFS) {
 		verbose(env, "The total number of btfs per program has reached the limit of %u\n",
 			MAX_USED_BTFS);
-		return -E2BIG;
+		ret = -E2BIG;
+		goto ret_put;
 	}
-
-	btf_get(btf);
 
 	btf_mod = &env->used_btfs[env->used_btf_cnt];
 	btf_mod->btf = btf;
@@ -20710,12 +20716,18 @@ static int __add_used_btf(struct bpf_verifier_env *env, struct btf *btf)
 	if (btf_is_module(btf)) {
 		btf_mod->module = btf_try_get_module(btf);
 		if (!btf_mod->module) {
-			btf_put(btf);
-			return -ENXIO;
+			ret = -ENXIO;
+			goto ret_put;
 		}
 	}
 
-	return env->used_btf_cnt++;
+	env->used_btf_cnt++;
+	return 0;
+
+ret_put:
+	/* Either error or this BTF was already added */
+	btf_put(btf);
+	return ret;
 }
 
 /* replace pseudo btf_id with kernel symbol address */
@@ -20812,9 +20824,7 @@ static int check_pseudo_btf_id(struct bpf_verifier_env *env,
 
 	btf_fd = insn[1].imm;
 	if (btf_fd) {
-		CLASS(fd, f)(btf_fd);
-
-		btf = __btf_get_by_fd(f);
+		btf = btf_get_by_fd(btf_fd);
 		if (IS_ERR(btf)) {
 			verbose(env, "invalid module BTF object FD specified.\n");
 			return -EINVAL;
@@ -20824,17 +20834,17 @@ static int check_pseudo_btf_id(struct bpf_verifier_env *env,
 			verbose(env, "kernel is missing BTF, make sure CONFIG_DEBUG_INFO_BTF=y is specified in Kconfig.\n");
 			return -EINVAL;
 		}
+		btf_get(btf_vmlinux);
 		btf = btf_vmlinux;
 	}
 
 	err = __check_pseudo_btf_id(env, insn, aux, btf);
-	if (err)
+	if (err) {
+		btf_put(btf);
 		return err;
+	}
 
-	err = __add_used_btf(env, btf);
-	if (err < 0)
-		return err;
-	return 0;
+	return __add_used_btf(env, btf);
 }
 
 static bool is_tracing_prog_type(enum bpf_prog_type type)
@@ -24650,10 +24660,8 @@ static int add_fd_from_fd_array(struct bpf_verifier_env *env, int fd)
 
 	btf = __btf_get_by_fd(f);
 	if (!IS_ERR(btf)) {
-		err = __add_used_btf(env, btf);
-		if (err < 0)
-			return err;
-		return 0;
+		btf_get(btf);
+		return __add_used_btf(env, btf);
 	}
 
 	verbose(env, "fd %d is not pointing to valid bpf_map or btf\n", fd);
@@ -25076,15 +25084,18 @@ dfs_continue:
 			}
 			/*
 			 * Assign SCC number only if component has two or more elements,
-			 * or if component has a self reference.
+			 * or if component has a self reference, or if instruction is a
+			 * callback calling function (implicit loop).
 			 */
-			assign_scc = stack[stack_sz - 1] != w;
-			for (j = 0; j < succ->cnt; ++j) {
+			assign_scc = stack[stack_sz - 1] != w;	/* two or more elements? */
+			for (j = 0; j < succ->cnt; ++j) {	/* self reference? */
 				if (succ->items[j] == w) {
 					assign_scc = true;
 					break;
 				}
 			}
+			if (bpf_calls_callback(env, w)) /* implicit loop? */
+				assign_scc = true;
 			/* Pop component elements from stack */
 			do {
 				t = stack[--stack_sz];

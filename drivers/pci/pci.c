@@ -426,7 +426,7 @@ found:
 static u8 __pci_find_next_cap(struct pci_bus *bus, unsigned int devfn,
 			      u8 pos, int cap)
 {
-	return PCI_FIND_NEXT_CAP(pci_bus_read_config, pos, cap, bus, devfn);
+	return PCI_FIND_NEXT_CAP(pci_bus_read_config, pos, cap, NULL, bus, devfn);
 }
 
 u8 pci_find_next_capability(struct pci_dev *dev, u8 pos, int cap)
@@ -531,7 +531,7 @@ u16 pci_find_next_ext_capability(struct pci_dev *dev, u16 start, int cap)
 		return 0;
 
 	return PCI_FIND_NEXT_EXT_CAP(pci_bus_read_config, start, cap,
-				     dev->bus, dev->devfn);
+				     NULL, dev->bus, dev->devfn);
 }
 EXPORT_SYMBOL_GPL(pci_find_next_ext_capability);
 
@@ -600,7 +600,7 @@ static u8 __pci_find_next_ht_cap(struct pci_dev *dev, u8 pos, int ht_cap)
 		mask = HT_5BIT_CAP_MASK;
 
 	pos = PCI_FIND_NEXT_CAP(pci_bus_read_config, pos,
-				PCI_CAP_ID_HT, dev->bus, dev->devfn);
+				PCI_CAP_ID_HT, NULL, dev->bus, dev->devfn);
 	while (pos) {
 		rc = pci_read_config_byte(dev, pos + 3, &cap);
 		if (rc != PCIBIOS_SUCCESSFUL)
@@ -611,7 +611,7 @@ static u8 __pci_find_next_ht_cap(struct pci_dev *dev, u8 pos, int ht_cap)
 
 		pos = PCI_FIND_NEXT_CAP(pci_bus_read_config,
 					pos + PCI_CAP_LIST_NEXT,
-					PCI_CAP_ID_HT, dev->bus,
+					PCI_CAP_ID_HT, NULL, dev->bus,
 					dev->devfn);
 	}
 
@@ -1487,6 +1487,9 @@ static int pci_set_low_power_state(struct pci_dev *dev, pci_power_t state, bool 
 	if ((state == PCI_D1 && !dev->d1_support)
 	   || (state == PCI_D2 && !dev->d2_support))
 		return -EIO;
+
+	if (dev->current_state == state)
+		return 0;
 
 	pci_read_config_word(dev, dev->pm_cap + PCI_PM_CTRL, &pmcsr);
 	if (PCI_POSSIBLE_ERROR(pmcsr)) {
@@ -6591,7 +6594,7 @@ static void of_pci_bus_release_domain_nr(struct device *parent, int domain_nr)
 		return;
 
 	/* Release domain from IDA where it was allocated. */
-	if (of_get_pci_domain_nr(parent->of_node) == domain_nr)
+	if (parent && of_get_pci_domain_nr(parent->of_node) == domain_nr)
 		ida_free(&pci_domain_nr_static_ida, domain_nr);
 	else
 		ida_free(&pci_domain_nr_dynamic_ida, domain_nr);
