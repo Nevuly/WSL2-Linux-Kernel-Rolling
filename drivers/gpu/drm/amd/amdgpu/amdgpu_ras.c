@@ -2777,6 +2777,10 @@ static int amdgpu_ras_badpages_read(struct amdgpu_device *adev,
 			if (!data->bps[i].ts)
 				continue;
 
+			/* U64_MAX is used to mark the record as invalid */
+			if (data->bps[i].retired_page == U64_MAX)
+				continue;
+
 			bps[r].bp = data->bps[i].retired_page;
 			r++;
 			if (r >= count)
@@ -3076,16 +3080,18 @@ static int __amdgpu_ras_restore_bad_pages(struct amdgpu_device *adev,
 	struct ras_err_handler_data *data = con->eh_data;
 
 	for (j = 0; j < count; j++) {
-		if (amdgpu_ras_check_bad_page_unlock(con,
-			bps[j].retired_page << AMDGPU_GPU_PAGE_SHIFT)) {
-			data->count++;
-			data->space_left--;
-			continue;
-		}
-
 		if (!data->space_left &&
 		    amdgpu_ras_realloc_eh_data_space(adev, data, 256)) {
 			return -ENOMEM;
+		}
+
+		if (amdgpu_ras_check_bad_page_unlock(con,
+			bps[j].retired_page << AMDGPU_GPU_PAGE_SHIFT)) {
+			/* set to U64_MAX to mark it as invalid */
+			data->bps[data->count].retired_page = U64_MAX;
+			data->count++;
+			data->space_left--;
+			continue;
 		}
 
 		amdgpu_ras_reserve_page(adev, bps[j].retired_page);
@@ -3249,8 +3255,6 @@ int amdgpu_ras_add_bad_pages(struct amdgpu_device *adev,
 						/* deal with retire_unit records a time */
 						ret = __amdgpu_ras_convert_rec_array_from_rom(adev,
 										&bps[i], &err_data, nps);
-						if (ret)
-							con->bad_page_num -= adev->umc.retire_unit;
 						i += (adev->umc.retire_unit - 1);
 					} else {
 						break;
@@ -3263,8 +3267,6 @@ int amdgpu_ras_add_bad_pages(struct amdgpu_device *adev,
 		for (; i < pages; i++) {
 			ret = __amdgpu_ras_convert_rec_from_rom(adev,
 				&bps[i], &err_data, nps);
-			if (ret)
-				con->bad_page_num -= adev->umc.retire_unit;
 		}
 
 		con->eh_data->count_saved = con->eh_data->count;
