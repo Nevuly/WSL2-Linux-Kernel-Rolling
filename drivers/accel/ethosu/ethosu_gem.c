@@ -154,7 +154,7 @@ static void cmd_state_init(struct cmd_state *st)
 
 static u64 cmd_to_addr(u32 *cmd)
 {
-	return ((u64)((cmd[0] & 0xff0000) << 16)) | cmd[1];
+	return (((u64)cmd[0] & 0xff0000) << 16) | cmd[1];
 }
 
 static u64 dma_length(struct ethosu_validated_cmdstream_info *info,
@@ -417,7 +417,10 @@ static int ethosu_gem_cmdstream_copy_and_validate(struct drm_device *ddev,
 				return ret;
 			break;
 		case NPU_OP_ELEMENTWISE:
-			use_ifm2 = !((st.ifm2.broadcast == 8) || (param == 5) ||
+			use_scale = ethosu_is_u65(edev) ?
+				    (st.ifm2.broadcast & 0x80) :
+				    (st.ifm2.broadcast == 8);
+			use_ifm2 = !(use_scale || (param == 5) ||
 				(param == 6) || (param == 7) || (param == 0x24));
 			use_ifm = st.ifm.broadcast != 8;
 			ret = calc_sizes_elemwise(ddev, info, cmd, &st, use_ifm, use_ifm2);
