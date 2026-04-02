@@ -3616,8 +3616,10 @@ static int __construct_region(struct cxl_region *cxlr,
 	}
 
 	rc = sysfs_update_group(&cxlr->dev.kobj, &cxl_region_group);
-	if (rc)
+	if (rc) {
+		kfree(res);
 		return rc;
+	}
 
 	rc = insert_resource(cxlrd->res, res);
 	if (rc) {
