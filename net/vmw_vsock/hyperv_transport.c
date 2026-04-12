@@ -703,12 +703,15 @@ static s64 hvs_stream_has_data(struct vsock_sock *vsk)
 	switch (hvs_channel_readable_payload(hvs->chan)) {
 	case 1:
 		need_refill = !hvs->recv_desc;
-		if (!need_refill)
-			return -EIO;
-
-		hvs->recv_desc = hv_pkt_iter_first(hvs->chan);
-		if (!hvs->recv_desc)
-			return -ENOBUFS;
+		if (!need_refill) {
+			hvs->recv_desc = hv_pkt_iter_next(hvs->chan, hvs->recv_desc);
+			if (!hvs->recv_desc)
+				return 0;
+		} else {
+			hvs->recv_desc = hv_pkt_iter_first(hvs->chan);
+			if (!hvs->recv_desc)
+				return -ENOBUFS;
+		}
 
 		ret = hvs_update_recv_data(hvs);
 		if (ret)
