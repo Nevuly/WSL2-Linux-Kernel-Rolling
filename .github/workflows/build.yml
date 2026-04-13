@@ -10,7 +10,7 @@ on:
         required: true
         type: boolean
         default: false
-      is_normal_build:
+      is_release:
         required: false
         type: boolean
         default: false
@@ -262,7 +262,7 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     needs: build
-    if: ${{ inputs.is_normal_build }}
+    if: ${{ inputs.is_release }}
     env:
       X86_IMAGE_SHA: ${{ needs.build.outputs.X86_IMAGE_SHA }}
       X86_ADDON_SHA: ${{ needs.build.outputs.X86_ADDON_SHA }}
