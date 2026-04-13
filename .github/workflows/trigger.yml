@@ -17,5 +17,5 @@ jobs:
     with:
       tag_name: ${{ github.ref_name }}
       build_zfs: false
-      is_normal_build: ${{ github.event_name != 'pull_request' }}
+      is_release: ${{ github.event_name != 'pull_request' }}
     secrets: inherit
