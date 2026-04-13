@@ -19,7 +19,6 @@
 #include <linux/mman.h>
 #include <linux/delay.h>
 #include <linux/pagemap.h>
-#include <linux/vmalloc.h>
 #include "dxgkrnl.h"
 #include "dxgvmbus.h"
 
