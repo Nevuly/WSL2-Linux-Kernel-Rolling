@@ -25,12 +25,16 @@ jobs:
     outputs:
       X86_IMAGE_SHA: ${{ steps.gen-sha-256.outputs.X86_IMAGE_SHA }}
       X86_ADDON_SHA: ${{ steps.gen-sha-256.outputs.X86_ADDON_SHA }}
+      X86_ADDON_7Z_SHA: ${{ steps.gen-sha-256.outputs.X86_ADDON_7Z_SHA }}
       X86_RT_IMAGE_SHA: ${{ steps.gen-sha-256.outputs.X86_RT_IMAGE_SHA }}
       X86_RT_ADDON_SHA: ${{ steps.gen-sha-256.outputs.X86_RT_ADDON_SHA }}
+      X86_RT_ADDON_7Z_SHA: ${{ steps.gen-sha-256.outputs.X86_RT_ADDON_7Z_SHA }}
       ARM64_IMAGE_SHA: ${{ steps.gen-sha-256.outputs.ARM64_IMAGE_SHA }}
       ARM64_ADDON_SHA: ${{ steps.gen-sha-256.outputs.ARM64_ADDON_SHA }}
+      ARM64_ADDON_7Z_SHA: ${{ steps.gen-sha-256.outputs.ARM64_ADDON_7Z_SHA }}
       ARM64_RT_IMAGE_SHA: ${{ steps.gen-sha-256.outputs.ARM64_RT_IMAGE_SHA }}
       ARM64_RT_ADDON_SHA: ${{ steps.gen-sha-256.outputs.ARM64_RT_ADDON_SHA }}
+      ARM64_RT_ADDON_7Z_SHA: ${{ steps.gen-sha-256.outputs.ARM64_RT_ADDON_7Z_SHA }}
     strategy:
       matrix:
         include:
@@ -220,34 +224,35 @@ jobs:
           else
           sudo ../.github/scripts/gen_modules_vhdx.sh "$PWD/${{ matrix.image-name }}-addon_install/" "$version-WSL2-RT-STABLE+" ${{ matrix.image-name }}-addon.vhdx
           fi
+          7z a -mx=9 ${{ matrix.image-name }}-addon.vhdx.7z ${{ matrix.image-name }}-addon.vhdx > /dev/null
           mv ${{ matrix.image-name }}-addon.vhdx ../
+          mv ${{ matrix.image-name }}-addon.vhdx.7z ../
 
       - name: Generate SHA-256 Checksum
         id: gen-sha-256
         run: |
+          read -r imageSHA rest <<< "$(sha256sum ${{ matrix.image-name }})"
+          read -r addonSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-addon.vhdx)"
+          read -r addon7zSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-addon.vhdx.7z)"
           if [ ${{ matrix.arch }} == "x86" ]
           then
-          read -r x86ImageSHA rest <<< "$(sha256sum ${{ matrix.image-name }})"
-          read -r x86AddonSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-addon.vhdx)"
-          echo "X86_IMAGE_SHA=$x86ImageSHA" >> $GITHUB_OUTPUT
-          echo "X86_ADDON_SHA=$x86AddonSHA" >> $GITHUB_OUTPUT
+          echo "X86_IMAGE_SHA=$imageSHA" >> $GITHUB_OUTPUT
+          echo "X86_ADDON_SHA=$addonSHA" >> $GITHUB_OUTPUT
+          echo "X86_ADDON_7Z_SHA=$addon7zSHA" >> $GITHUB_OUTPUT
           elif [ ${{ matrix.arch }} == "x86-rt" ]
           then
-          read -r x86RTImageSHA rest <<< "$(sha256sum ${{ matrix.image-name }})"
-          read -r x86RTAddonSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-addon.vhdx)"
-          echo "X86_RT_IMAGE_SHA=$x86RTImageSHA" >> $GITHUB_OUTPUT
-          echo "X86_RT_ADDON_SHA=$x86RTAddonSHA" >> $GITHUB_OUTPUT
+          echo "X86_RT_IMAGE_SHA=$imageSHA" >> $GITHUB_OUTPUT
+          echo "X86_RT_ADDON_SHA=$addonSHA" >> $GITHUB_OUTPUT
+          echo "X86_RT_ADDON_7Z_SHA=$addon7zSHA" >> $GITHUB_OUTPUT
           elif [ ${{ matrix.arch }} == "arm64" ]
           then
-          read -r arm64ImageSHA rest <<< "$(sha256sum ${{ matrix.image-name }})"
-          read -r arm64AddonSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-addon.vhdx)"
-          echo "ARM64_IMAGE_SHA=$arm64ImageSHA" >> $GITHUB_OUTPUT
-          echo "ARM64_ADDON_SHA=$arm64AddonSHA" >> $GITHUB_OUTPUT
+          echo "ARM64_IMAGE_SHA=$imageSHA" >> $GITHUB_OUTPUT
+          echo "ARM64_ADDON_SHA=$addonSHA" >> $GITHUB_OUTPUT
+          echo "ARM64_ADDON_7Z_SHA=$addon7zSHA" >> $GITHUB_OUTPUT
           else
-          read -r arm64RTImageSHA rest <<< "$(sha256sum ${{ matrix.image-name }})"
-          read -r arm64RTAddonSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-addon.vhdx)"
-          echo "ARM64_RT_IMAGE_SHA=$arm64RTImageSHA" >> $GITHUB_OUTPUT
-          echo "ARM64_RT_ADDON_SHA=$arm64RTAddonSHA" >> $GITHUB_OUTPUT
+          echo "ARM64_RT_IMAGE_SHA=$imageSHA" >> $GITHUB_OUTPUT
+          echo "ARM64_RT_ADDON_SHA=$addonSHA" >> $GITHUB_OUTPUT
+          echo "ARM64_RT_ADDON_7Z_SHA=$addon7zSHA" >> $GITHUB_OUTPUT
           fi
 
       - name: Upload Kernel Images
@@ -256,7 +261,7 @@ jobs:
           name: ${{ matrix.image-name }}
           path: |
             ${{ matrix.image-name }}
-            ${{ matrix.image-name }}-addon.vhdx
+            ${{ matrix.image-name }}-addon.vhdx.7z
 
   release:
     name: Release
@@ -266,12 +271,16 @@ jobs:
     env:
       X86_IMAGE_SHA: ${{ needs.build.outputs.X86_IMAGE_SHA }}
       X86_ADDON_SHA: ${{ needs.build.outputs.X86_ADDON_SHA }}
+      X86_ADDON_7Z_SHA: ${{ needs.build.outputs.X86_ADDON_7Z_SHA }}
       X86_RT_IMAGE_SHA: ${{ needs.build.outputs.X86_RT_IMAGE_SHA }}
       X86_RT_ADDON_SHA: ${{ needs.build.outputs.X86_RT_ADDON_SHA }}
+      X86_RT_ADDON_7Z_SHA: ${{ needs.build.outputs.X86_RT_ADDON_7Z_SHA }}
       ARM64_IMAGE_SHA: ${{ needs.build.outputs.ARM64_IMAGE_SHA }}
       ARM64_ADDON_SHA: ${{ needs.build.outputs.ARM64_ADDON_SHA }}
+      ARM64_ADDON_7Z_SHA: ${{ needs.build.outputs.ARM64_ADDON_7Z_SHA }}
       ARM64_RT_IMAGE_SHA: ${{ needs.build.outputs.ARM64_RT_IMAGE_SHA }}
       ARM64_RT_ADDON_SHA: ${{ needs.build.outputs.ARM64_RT_ADDON_SHA }}
+      ARM64_RT_ADDON_7Z_SHA: ${{ needs.build.outputs.ARM64_RT_ADDON_7Z_SHA }}
 
     steps:
       - uses: actions/checkout@main
@@ -295,12 +304,16 @@ jobs:
             |:--------------:|:------:|
             | bzImage-x86_64 | ${{ env.X86_IMAGE_SHA }} |
             | bzImage-x86_64-addon.vhdx | ${{ env.X86_ADDON_SHA }} |
+            | bzImage-x86_64-addon.vhdx.7z | ${{ env.X86_ADDON_7Z_SHA }} |
             | bzImage-x86_64-rt | ${{ env.X86_RT_IMAGE_SHA }} |
             | bzImage-x86_64-rt-addon.vhdx | ${{ env.X86_RT_ADDON_SHA }} |
+            | bzImage-x86_64-rt-addon.vhdx.7z | ${{ env.X86_RT_ADDON_7Z_SHA }} |
             | Image-arm64 | ${{ env.ARM64_IMAGE_SHA }} |
             | Image-arm64-addon.vhdx | ${{ env.ARM64_ADDON_SHA }} |
+            | Image-arm64-addon.vhdx.7z | ${{ env.ARM64_ADDON_7Z_SHA }} |
             | Image-arm64-rt | ${{ env.ARM64_RT_IMAGE_SHA }} |
             | Image-arm64-rt-addon.vhdx | ${{ env.ARM64_RT_ADDON_SHA }} |
+            | Image-arm64-rt-addon.vhdx.7z | ${{ env.ARM64_RT_ADDON_7Z_SHA }} |
 
             ### **How to install this kernel or kernel addon package in WSL2?**
              - Please see this [wiki](https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/wiki/Install-Instructions).
