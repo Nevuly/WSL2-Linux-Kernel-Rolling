@@ -6,14 +6,15 @@ on:
       tag_name:
         required: true
         type: string
+        default: ""
       build_zfs:
         required: true
         type: boolean
-        default: false
+        default: true
       is_release:
         required: false
         type: boolean
-        default: false
+        default: true
 
 jobs:
   build:
