@@ -1,4 +1,4 @@
-name: Stable Kernel CI Build Core
+name: CI Core
 
 on:
   workflow_call:
