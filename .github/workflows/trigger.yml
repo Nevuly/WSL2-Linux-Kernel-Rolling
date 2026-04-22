@@ -10,12 +10,17 @@ on:
 
 run-name: Stable Release Build ${{ github.ref_name }}
 
+env:
+  build_type: current
+
 jobs:
   call-core-workflow:
     name: Stable Kernel Build
     uses: Nevuly/WSL2-Linux-Kernel-Rolling/.github/workflows/build.yml@master
     with:
       tag_name: ${{ github.ref_name }}
+      build_type: ${{ env.build_type }}
+      build_rt: true
       build_zfs: true
-      is_release: ${{ github.event_name != 'pull_request' }}
+      is_release: ${{ github.event_name != 'pull_request' && env.build_type == 'current' }}
     secrets: inherit
