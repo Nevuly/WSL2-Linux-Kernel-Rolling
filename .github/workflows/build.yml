@@ -68,14 +68,15 @@ jobs:
         run: |
           cd linux
           mkdir -p ${{ matrix.image-name }}-addon_install && make modules_install INSTALL_MOD_PATH=${{ matrix.image-name }}-addon_install
-          IFS=- read -r var1 var2 var3 version <<< ${{ inputs.tag_name }}
           if [ ${{ inputs.build_type }} == "emus" ]; then
+          IFS=- read -r var1 var2 var3 version var4 <<< ${{ inputs.tag_name }}
           if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
           rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE-EMUS+/build
           else
           rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-RT-STABLE-EMUS+/build
           fi
           else
+          IFS=- read -r var1 var2 var3 version <<< ${{ inputs.tag_name }}
           if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
           rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/build
           else
@@ -86,14 +87,15 @@ jobs:
       - name: Generate Kernel Headers and Documents
         run: |
           cd linux
-          IFS=- read -r var1 var2 var3 version <<< ${{ inputs.tag_name }}
           if [ ${{ inputs.build_type }} == "emus" ]; then
+          IFS=- read -r var1 var2 var3 version var4 <<< ${{ inputs.tag_name }}
           if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
           export addon_path=${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE-EMUS+/build
           else
           export addon_path=${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-RT-STABLE-EMUS+/build
           fi
           else
+          IFS=- read -r var1 var2 var3 version <<< ${{ inputs.tag_name }}
           if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
           export addon_path=${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/build
           else
@@ -199,8 +201,8 @@ jobs:
       - name: Generate ZFS Kernel Module
         if: ${{ inputs.build_zfs }}
         run: |
-          IFS=- read -r var1 var2 var3 version <<< ${{ inputs.tag_name }}
           if [ ${{ inputs.build_type }} == "emus" ]; then
+          IFS=- read -r var1 var2 var3 version var4 <<< ${{ inputs.tag_name }}
           if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
           mkdir -p linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE-EMUS+/extra
           find zfs/module -name "*.ko" -exec cp {} linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE-EMUS+/extra \;
@@ -209,6 +211,7 @@ jobs:
           find zfs/module -name "*.ko" -exec cp {} linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-RT-STABLE-EMUS+/extra \;
           fi
           else
+          IFS=- read -r var1 var2 var3 version <<< ${{ inputs.tag_name }}
           if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
           mkdir -p linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/extra
           find zfs/module -name "*.ko" -exec cp {} linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/extra \;
@@ -221,14 +224,15 @@ jobs:
       - name: Generate Kernel Addon Package
         run: |
           cd linux
-          IFS=- read -r var1 var2 var3 version <<< ${{ inputs.tag_name }}
           if [ ${{ inputs.build_type }} == "emus" ]; then
+          IFS=- read -r var1 var2 var3 version var4 <<< ${{ inputs.tag_name }}
           if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
           sudo ../.github/scripts/gen_modules_vhdx.sh "$PWD/${{ matrix.image-name }}-addon_install/" "$version-WSL2-STABLE-EMUS+" ${{ matrix.image-name }}-addon.vhdx
           else
           sudo ../.github/scripts/gen_modules_vhdx.sh "$PWD/${{ matrix.image-name }}-addon_install/" "$version-WSL2-RT-STABLE-EMUS+" ${{ matrix.image-name }}-addon.vhdx
           fi
           else
+          IFS=- read -r var1 var2 var3 version <<< ${{ inputs.tag_name }}
           if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
           sudo ../.github/scripts/gen_modules_vhdx.sh "$PWD/${{ matrix.image-name }}-addon_install/" "$version-WSL2-STABLE+" ${{ matrix.image-name }}-addon.vhdx
           else
