@@ -32,33 +32,12 @@ jobs:
       image: nevuly/nevuly-dev-base:build
       options: --privileged
     outputs:
-      X86_IMAGE_SHA: ${{ steps.gen-sha-256.outputs.X86_IMAGE_SHA }}
-      X86_ADDON_SHA: ${{ steps.gen-sha-256.outputs.X86_ADDON_SHA }}
-      X86_ADDON_7Z_SHA: ${{ steps.gen-sha-256.outputs.X86_ADDON_7Z_SHA }}
-      X86_RT_IMAGE_SHA: ${{ steps.gen-sha-256.outputs.X86_RT_IMAGE_SHA }}
-      X86_RT_ADDON_SHA: ${{ steps.gen-sha-256.outputs.X86_RT_ADDON_SHA }}
-      X86_RT_ADDON_7Z_SHA: ${{ steps.gen-sha-256.outputs.X86_RT_ADDON_7Z_SHA }}
-      ARM64_IMAGE_SHA: ${{ steps.gen-sha-256.outputs.ARM64_IMAGE_SHA }}
-      ARM64_ADDON_SHA: ${{ steps.gen-sha-256.outputs.ARM64_ADDON_SHA }}
-      ARM64_ADDON_7Z_SHA: ${{ steps.gen-sha-256.outputs.ARM64_ADDON_7Z_SHA }}
-      ARM64_RT_IMAGE_SHA: ${{ steps.gen-sha-256.outputs.ARM64_RT_IMAGE_SHA }}
-      ARM64_RT_ADDON_SHA: ${{ steps.gen-sha-256.outputs.ARM64_RT_ADDON_SHA }}
-      ARM64_RT_ADDON_7Z_SHA: ${{ steps.gen-sha-256.outputs.ARM64_RT_ADDON_7Z_SHA }}
+      X86_BUILD_ROWS: ${{ steps.gen-sha-256.outputs.X86_BUILD_ROWS }}
+      X86_RT_BUILD_ROWS: ${{ steps.gen-sha-256.outputs.X86_RT_BUILD_ROWS }}
+      ARM64_BUILD_ROWS: ${{ steps.gen-sha-256.outputs.ARM64_BUILD_ROWS }}
+      ARM64_RT_BUILD_ROWS: ${{ steps.gen-sha-256.outputs.ARM64_RT_BUILD_ROWS }}
     strategy:
-      matrix:
-        include:
-          - arch: x86
-            image-name: bzImage-x86_64
-            os: ubuntu-24.04
-          - arch: x86-rt
-            image-name: bzImage-x86_64-rt
-            os: ubuntu-24.04
-          - arch: arm64
-            image-name: Image-arm64
-            os: ubuntu-24.04-arm
-          - arch: arm64-rt
-            image-name: Image-arm64-rt
-            os: ubuntu-24.04-arm
+      matrix: ${{ fromJSON(inputs.build_rt && '{"include":[{"arch":"x86","image-name":"bzImage-x86_64","os":"ubuntu-24.04"},{"arch":"x86-rt","image-name":"bzImage-x86_64-rt","os":"ubuntu-24.04"},{"arch":"arm64","image-name":"Image-arm64","os":"ubuntu-24.04-arm"},{"arch":"arm64-rt","image-name":"Image-arm64-rt","os":"ubuntu-24.04-arm"}]}' || '{"include":[{"arch":"x86","image-name":"bzImage-x86_64","os":"ubuntu-24.04"},{"arch":"arm64","image-name":"Image-arm64","os":"ubuntu-24.04-arm"}]}') }}
 
     steps:
       - name: Trust Build Directory
@@ -77,20 +56,11 @@ jobs:
       - name: Build WSL2 Stable Kernel
         run: |
           cd linux
-          if [ ${{ matrix.arch }} == "x86" ]
-          then
-          make KCONFIG_CONFIG=arch/x86/configs/config-wsl-x86 -j$(echo `nproc` + 1 | bc)
+          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "x86-rt" ]; then
+          make KCONFIG_CONFIG=arch/x86/configs/config-wsl-${{ matrix.arch }} -j$(echo `nproc` + 1 | bc)
           cp arch/x86/boot/bzImage ../${{ matrix.image-name }}
-          elif [ ${{ matrix.arch }} == "x86-rt" ]
-          then
-          make KCONFIG_CONFIG=arch/x86/configs/config-wsl-x86-rt -j$(echo `nproc` + 1 | bc)
-          cp arch/x86/boot/bzImage ../${{ matrix.image-name }}
-          elif [ ${{ matrix.arch }} == "arm64" ]
-          then
-          make KCONFIG_CONFIG=arch/arm64/configs/config-wsl-arm64 -j$(echo `nproc` + 1 | bc)
-          cp arch/arm64/boot/Image ../${{ matrix.image-name }}
-          else
-          make KCONFIG_CONFIG=arch/arm64/configs/config-wsl-arm64-rt -j$(echo `nproc` + 1 | bc)
+          elif [ ${{ matrix.arch }} == "arm64" ] || [ ${{ matrix.arch }} == "arm64-rt" ]; then
+          make KCONFIG_CONFIG=arch/arm64/configs/config-wsl-${{ matrix.arch }} -j$(echo `nproc` + 1 | bc)
           cp arch/arm64/boot/Image ../${{ matrix.image-name }}
           fi
 
@@ -99,8 +69,7 @@ jobs:
           cd linux
           IFS=- read -r var1 var2 var3 version <<< ${{ inputs.tag_name }}
           mkdir -p ${{ matrix.image-name }}-addon_install && make modules_install INSTALL_MOD_PATH=${{ matrix.image-name }}-addon_install
-          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]
-          then
+          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
           rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/build
           else
           rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-RT-STABLE+/build
@@ -110,8 +79,7 @@ jobs:
         run: |
           cd linux
           IFS=- read -r var1 var2 var3 version <<< ${{ inputs.tag_name }}
-          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]
-          then
+          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
           export addon_path=${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/build
           else
           export addon_path=${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-RT-STABLE+/build
@@ -119,22 +87,19 @@ jobs:
           mkdir -p $addon_path
           install -Dt "$addon_path" -m644 Makefile Module.symvers System.map vmlinux
           install -Dt "$addon_path/kernel" -m644 kernel/Makefile
-          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "x86-rt" ]
-          then
+          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "x86-rt" ]; then
           install -Dt "$addon_path/arch/x86" -m644 arch/x86/Makefile
           else
           install -Dt "$addon_path/arch/arm64" -m644 arch/arm64/Makefile
           fi
           cp -t "$addon_path" -a scripts
           ln -srt "$addon_path" "addon_path/scripts/gdb/vmlinux-gdb.py"
-          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "x86-rt" ]
-          then
+          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "x86-rt" ]; then
           install -Dt "$addon_path/tools/objtool" tools/objtool/objtool
           fi
           install -Dt "$addon_path/tools/bpf/resolve_btfids" tools/bpf/resolve_btfids/resolve_btfids
           cp -t "$addon_path" -a include
-          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "x86-rt" ]
-          then
+          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "x86-rt" ]; then
           cp -t "$addon_path/arch/x86" -a arch/x86/include
           install -Dt "$addon_path/arch/x86/kernel" -m644 arch/x86/kernel/asm-offsets.s
           else
@@ -152,8 +117,7 @@ jobs:
           install -Dt "$addon_path/drivers/iio/common/hid-sensors" -m644 drivers/iio/common/hid-sensors/*.h
           find . -name 'Kconfig*' -exec install -Dm644 {} "$addon_path/{}" \;
           export arch
-          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "x86-rt" ]
-          then
+          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "x86-rt" ]; then
           for arch in "$addon_path"/arch/*/; do
             [[ $arch = */x86/ ]] && continue
             echo "Removing $(basename "$arch")"
@@ -185,13 +149,11 @@ jobs:
                 strip -v $STRIP_SHARED $file ;;
             esac
           done < <(find "$addon_path" -type f -perm -u+x ! -name vmlinux -print0)
-          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "x86-rt" ]
-          then
+          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "x86-rt" ]; then
           strip -v $STRIP_STATIC "$addon_path/vmlinux"
           fi
           cp -r Documentation $addon_path/Documentation
-          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]
-          then
+          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
           rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/build/${{ matrix.image-name }}-addon_install
           else
           rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-RT-STABLE+/build/${{ matrix.image-name }}-addon_install
@@ -214,8 +176,7 @@ jobs:
         if: ${{ inputs.build_zfs }}
         run: |
           IFS=- read -r var1 var2 var3 version <<< ${{ inputs.tag_name }}
-          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]
-          then
+          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
           mkdir -p linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/extra
           find zfs/module -name "*.ko" -exec cp {} linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/extra \;
           else
@@ -227,8 +188,7 @@ jobs:
         run: |
           IFS=- read -r var1 var2 var3 version <<< ${{ inputs.tag_name }}
           cd linux
-          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]
-          then
+          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
           sudo ../.github/scripts/gen_modules_vhdx.sh "$PWD/${{ matrix.image-name }}-addon_install/" "$version-WSL2-STABLE+" ${{ matrix.image-name }}-addon.vhdx
           else
           sudo ../.github/scripts/gen_modules_vhdx.sh "$PWD/${{ matrix.image-name }}-addon_install/" "$version-WSL2-RT-STABLE+" ${{ matrix.image-name }}-addon.vhdx
@@ -243,26 +203,21 @@ jobs:
           read -r imageSHA rest <<< "$(sha256sum ${{ matrix.image-name }})"
           read -r addonSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-addon.vhdx)"
           read -r addon7zSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-addon.vhdx.7z)"
-          if [ ${{ matrix.arch }} == "x86" ]
-          then
-          echo "X86_IMAGE_SHA=$imageSHA" >> $GITHUB_OUTPUT
-          echo "X86_ADDON_SHA=$addonSHA" >> $GITHUB_OUTPUT
-          echo "X86_ADDON_7Z_SHA=$addon7zSHA" >> $GITHUB_OUTPUT
-          elif [ ${{ matrix.arch }} == "x86-rt" ]
-          then
-          echo "X86_RT_IMAGE_SHA=$imageSHA" >> $GITHUB_OUTPUT
-          echo "X86_RT_ADDON_SHA=$addonSHA" >> $GITHUB_OUTPUT
-          echo "X86_RT_ADDON_7Z_SHA=$addon7zSHA" >> $GITHUB_OUTPUT
-          elif [ ${{ matrix.arch }} == "arm64" ]
-          then
-          echo "ARM64_IMAGE_SHA=$imageSHA" >> $GITHUB_OUTPUT
-          echo "ARM64_ADDON_SHA=$addonSHA" >> $GITHUB_OUTPUT
-          echo "ARM64_ADDON_7Z_SHA=$addon7zSHA" >> $GITHUB_OUTPUT
-          else
-          echo "ARM64_RT_IMAGE_SHA=$imageSHA" >> $GITHUB_OUTPUT
-          echo "ARM64_RT_ADDON_SHA=$addonSHA" >> $GITHUB_OUTPUT
-          echo "ARM64_RT_ADDON_7Z_SHA=$addon7zSHA" >> $GITHUB_OUTPUT
-          fi
+          {
+            if [ ${{ matrix.arch }} == "x86" ]; then
+            echo "X86_BUILD_ROWS<<EOF"
+            elif [ ${{ matrix.arch }} == "x86-rt" ]; then
+            echo "X86_RT_BUILD_ROWS<<EOF"
+            elif [ ${{ matrix.arch }} == "arm64" ]; then
+            echo "ARM64_BUILD_ROWS<<EOF"
+            else
+            echo "ARM64_RT_BUILD_ROWS<<EOF"
+            fi
+            echo "| ${{ matrix.image-name }} | $imageSHA |"
+            echo "| ${{ matrix.image-name }}-addon.vhdx | $addonSHA |"
+            echo "| ${{ matrix.image-name }}-addon.vhdx.7z | $addon7zSHA |"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
 
       - name: Upload Kernel Images
         uses: actions/upload-artifact@main
@@ -292,43 +247,58 @@ jobs:
       ARM64_RT_ADDON_7Z_SHA: ${{ needs.build.outputs.ARM64_RT_ADDON_7Z_SHA }}
 
     steps:
-      - uses: actions/checkout@main
-      - uses: actions/download-artifact@main
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Download Kernel Images
+        uses: actions/download-artifact@main
         with:
           path: release_images/
+
+      - name: Generate Release Note
+        run: |
+          {
+            echo "> [!WARNING]"
+            echo "> ARM64 kernel has not been tested!"
+            echo ">"
+            echo "> If you have any issues, please leave an issue on the [issue tab](https://github.com/Nevuly/WSL2-Rolling-Kernel-Issue/issues)!"
+            echo
+            if [ ${{ inputs.build_rt }} != "true" ]; then
+            echo "> [!NOTE]"
+            echo "> This build not included RT kernel!"
+            echo
+            fi
+            if [ ${{ inputs.build_zfs }} != "true" ]; then
+            echo "> [!NOTE]"
+            echo "> This build not included ZFS kernel module!"
+            echo ">"
+            echo "> It will be include again when ZFS driver support current kernel."
+            echo
+            fi
+            echo "### **Hash Information**"
+            echo "| File Name | SHA-256 Checksum |"
+            echo "|:--------------:|:------:|"
+            echo "${{ needs.build.outputs.X86_BUILD_ROWS }}"
+            if [ ${{ inputs.build_rt }} == "true" ]; then
+            echo "${{ needs.build.outputs.X86_RT_BUILD_ROWS }}"
+            fi
+            echo "${{ needs.build.outputs.ARM64_BUILD_ROWS }}"
+            if [ ${{ inputs.build_rt }} == "true" ]; then
+            echo "${{ needs.build.outputs.ARM64_RT_BUILD_ROWS }}"
+            fi
+            echo
+            echo "### **How to install this kernel or kernel addon package in WSL2?**"
+            echo " - Please see this [wiki](https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/wiki/Install-Instructions)."
+            echo
+            echo "**This kernel built on ArchLinux.**"
+          } > release_note.md
 
       - name: Release Stable Kernel
         uses: softprops/action-gh-release@master
         with:
           name: ${{ inputs.tag_name }}
           tag_name: ${{ inputs.tag_name }}
-          body: |
-            > [!WARNING]
-            > ARM64 kernel has not been tested!
-            >
-            > If you have any issues, please leave an issue on the [issue tab](https://github.com/Nevuly/WSL2-Rolling-Kernel-Issue/issues)!
-
-            ### **Hash Information**
-            | File Name | SHA-256 Checksum |
-            |:--------------:|:------:|
-            | bzImage-x86_64 | ${{ env.X86_IMAGE_SHA }} |
-            | bzImage-x86_64-addon.vhdx | ${{ env.X86_ADDON_SHA }} |
-            | bzImage-x86_64-addon.vhdx.7z | ${{ env.X86_ADDON_7Z_SHA }} |
-            | bzImage-x86_64-rt | ${{ env.X86_RT_IMAGE_SHA }} |
-            | bzImage-x86_64-rt-addon.vhdx | ${{ env.X86_RT_ADDON_SHA }} |
-            | bzImage-x86_64-rt-addon.vhdx.7z | ${{ env.X86_RT_ADDON_7Z_SHA }} |
-            | Image-arm64 | ${{ env.ARM64_IMAGE_SHA }} |
-            | Image-arm64-addon.vhdx | ${{ env.ARM64_ADDON_SHA }} |
-            | Image-arm64-addon.vhdx.7z | ${{ env.ARM64_ADDON_7Z_SHA }} |
-            | Image-arm64-rt | ${{ env.ARM64_RT_IMAGE_SHA }} |
-            | Image-arm64-rt-addon.vhdx | ${{ env.ARM64_RT_ADDON_SHA }} |
-            | Image-arm64-rt-addon.vhdx.7z | ${{ env.ARM64_RT_ADDON_7Z_SHA }} |
-
-            ### **How to install this kernel or kernel addon package in WSL2?**
-             - Please see this [wiki](https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling/wiki/Install-Instructions).
-
-            **This kernel built on ArchLinux.**
-
+          body_path: release_note.md
           files: |
             release_images/*/*
           token: ${{ secrets.CUSTOM_GITHUB_TOKEN }}
