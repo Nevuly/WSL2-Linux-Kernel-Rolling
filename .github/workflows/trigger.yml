@@ -1,21 +1,20 @@
-name: Stable Kernel CI
+name: Stable EMUS Kernel CI
 
 on:
   push:
     tags:
-      - 'linux-wsl-stable-6.19.[0-9]+'
-  pull_request:
-    branches:
-      - 'wsl-6.19-rolling'
+      - 'linux-wsl-stable-6.19.[0-9]+-emus'
 
-run-name: Stable Release Build ${{ github.ref_name }}
+run-name: Stable EMUS Build ${{ github.ref_name }}
 
 jobs:
   call-core-workflow:
-    name: Stable Kernel Build
+    name: Stable EMUS Kernel Build
     uses: Nevuly/WSL2-Linux-Kernel-Rolling/.github/workflows/build.yml@master
     with:
       tag_name: ${{ github.ref_name }}
+      build_type: emus
+      build_rt: true
       build_zfs: true
-      is_normal_build: ${{ github.event_name != 'pull_request' }}
+      is_normal_build: false
     secrets: inherit
