@@ -67,8 +67,8 @@ jobs:
       - name: Generate Kernel Modules
         run: |
           cd linux
-          IFS=- read -r var1 var2 var3 version <<< ${{ inputs.tag_name }}
           mkdir -p ${{ matrix.image-name }}-addon_install && make modules_install INSTALL_MOD_PATH=${{ matrix.image-name }}-addon_install
+          IFS=- read -r var1 var2 var3 version <<< ${{ inputs.tag_name }}
           if [ ${{ inputs.build_type }} == "emus" ]; then
           if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
           rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE-EMUS+/build
@@ -220,8 +220,8 @@ jobs:
 
       - name: Generate Kernel Addon Package
         run: |
-          IFS=- read -r var1 var2 var3 version <<< ${{ inputs.tag_name }}
           cd linux
+          IFS=- read -r var1 var2 var3 version <<< ${{ inputs.tag_name }}
           if [ ${{ inputs.build_type }} == "emus" ]; then
           if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
           sudo ../.github/scripts/gen_modules_vhdx.sh "$PWD/${{ matrix.image-name }}-addon_install/" "$version-WSL2-STABLE-EMUS+" ${{ matrix.image-name }}-addon.vhdx
@@ -282,7 +282,7 @@ jobs:
         run: |
           {
             if [ ${{ inputs.build_type }} == "emus" ]; then
-            echo "## Stable Extended Maintenance Update Support Build ${{ inputs.tag_name }} (Arch: ${{ matrix.arch }})"
+            echo "## Stable Extended Maintenance Update Build ${{ inputs.tag_name }} (Arch: ${{ matrix.arch }})"
             echo
             echo "> [!NOTE]"
             echo "> **This build not be release.**"
