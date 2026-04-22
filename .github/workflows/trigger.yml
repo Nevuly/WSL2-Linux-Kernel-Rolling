@@ -16,5 +16,5 @@ jobs:
       build_type: emus
       build_rt: true
       build_zfs: true
-      is_normal_build: false
+      is_release: false
     secrets: inherit
