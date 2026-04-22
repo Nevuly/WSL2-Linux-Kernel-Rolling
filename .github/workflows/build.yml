@@ -7,6 +7,14 @@ on:
         required: true
         type: string
         default: ""
+      build_type:
+        required: true
+        type: string
+        default: "current"
+      build_rt:
+        required: true
+        type: boolean
+        default: true
       build_zfs:
         required: true
         type: boolean
