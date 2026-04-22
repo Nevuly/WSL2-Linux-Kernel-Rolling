@@ -69,20 +69,36 @@ jobs:
           cd linux
           IFS=- read -r var1 var2 var3 version <<< ${{ inputs.tag_name }}
           mkdir -p ${{ matrix.image-name }}-addon_install && make modules_install INSTALL_MOD_PATH=${{ matrix.image-name }}-addon_install
+          if [ ${{ inputs.build_type }} == "emus" ]; then
+          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
+          rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE-EMUS+/build
+          else
+          rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-RT-STABLE-EMUS+/build
+          fi
+          else
           if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
           rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/build
           else
           rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-RT-STABLE+/build
+          fi
           fi
 
       - name: Generate Kernel Headers and Documents
         run: |
           cd linux
           IFS=- read -r var1 var2 var3 version <<< ${{ inputs.tag_name }}
+          if [ ${{ inputs.build_type }} == "emus" ]; then
+          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
+          export addon_path=${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE-EMUS+/build
+          else
+          export addon_path=${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-RT-STABLE-EMUS+/build
+          fi
+          else
           if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
           export addon_path=${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/build
           else
           export addon_path=${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-RT-STABLE+/build
+          fi
           fi
           mkdir -p $addon_path
           install -Dt "$addon_path" -m644 Makefile Module.symvers System.map vmlinux
@@ -153,10 +169,18 @@ jobs:
           strip -v $STRIP_STATIC "$addon_path/vmlinux"
           fi
           cp -r Documentation $addon_path/Documentation
+          if [ ${{ inputs.build_type }} == "emus" ]; then
+          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
+          rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE-EMUS+/build/${{ matrix.image-name }}-addon_install
+          else
+          rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-RT-STABLE-EMUS+/build/${{ matrix.image-name }}-addon_install
+          fi
+          else
           if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
           rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/build/${{ matrix.image-name }}-addon_install
           else
           rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-RT-STABLE+/build/${{ matrix.image-name }}-addon_install
+          fi
           fi
 
       - name: Download ZFS
@@ -176,6 +200,15 @@ jobs:
         if: ${{ inputs.build_zfs }}
         run: |
           IFS=- read -r var1 var2 var3 version <<< ${{ inputs.tag_name }}
+          if [ ${{ inputs.build_type }} == "emus" ]; then
+          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
+          mkdir -p linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE-EMUS+/extra
+          find zfs/module -name "*.ko" -exec cp {} linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE-EMUS+/extra \;
+          else
+          mkdir -p linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-RT-STABLE-EMUS+/extra
+          find zfs/module -name "*.ko" -exec cp {} linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-RT-STABLE-EMUS+/extra \;
+          fi
+          else
           if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
           mkdir -p linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/extra
           find zfs/module -name "*.ko" -exec cp {} linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-STABLE+/extra \;
@@ -183,15 +216,24 @@ jobs:
           mkdir -p linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-RT-STABLE+/extra
           find zfs/module -name "*.ko" -exec cp {} linux/${{ matrix.image-name }}-addon_install/lib/modules/$version-WSL2-RT-STABLE+/extra \;
           fi
+          fi
 
       - name: Generate Kernel Addon Package
         run: |
           IFS=- read -r var1 var2 var3 version <<< ${{ inputs.tag_name }}
           cd linux
+          if [ ${{ inputs.build_type }} == "emus" ]; then
+          if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
+          sudo ../.github/scripts/gen_modules_vhdx.sh "$PWD/${{ matrix.image-name }}-addon_install/" "$version-WSL2-STABLE-EMUS+" ${{ matrix.image-name }}-addon.vhdx
+          else
+          sudo ../.github/scripts/gen_modules_vhdx.sh "$PWD/${{ matrix.image-name }}-addon_install/" "$version-WSL2-RT-STABLE-EMUS+" ${{ matrix.image-name }}-addon.vhdx
+          fi
+          else
           if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
           sudo ../.github/scripts/gen_modules_vhdx.sh "$PWD/${{ matrix.image-name }}-addon_install/" "$version-WSL2-STABLE+" ${{ matrix.image-name }}-addon.vhdx
           else
           sudo ../.github/scripts/gen_modules_vhdx.sh "$PWD/${{ matrix.image-name }}-addon_install/" "$version-WSL2-RT-STABLE+" ${{ matrix.image-name }}-addon.vhdx
+          fi
           fi
           7z a -mx=9 ${{ matrix.image-name }}-addon.vhdx.7z ${{ matrix.image-name }}-addon.vhdx > /dev/null
           mv ${{ matrix.image-name }}-addon.vhdx ../
@@ -203,6 +245,7 @@ jobs:
           read -r imageSHA rest <<< "$(sha256sum ${{ matrix.image-name }})"
           read -r addonSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-addon.vhdx)"
           read -r addon7zSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-addon.vhdx.7z)"
+          if [ ${{ inputs.is_release }} == "true" ] && [ ${{ inputs.build_type }} == "current" ]; then
           {
             if [ ${{ matrix.arch }} == "x86" ]; then
             echo "X86_BUILD_ROWS<<EOF"
@@ -218,6 +261,7 @@ jobs:
             echo "| ${{ matrix.image-name }}-addon.vhdx.7z | $addon7zSHA |"
             echo "EOF"
           } >> $GITHUB_OUTPUT
+          fi
 
       - name: Upload Kernel Images
         uses: actions/upload-artifact@main
