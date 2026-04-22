@@ -245,6 +245,13 @@ jobs:
           read -r imageSHA rest <<< "$(sha256sum ${{ matrix.image-name }})"
           read -r addonSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-addon.vhdx)"
           read -r addon7zSHA rest <<< "$(sha256sum ${{ matrix.image-name }}-addon.vhdx.7z)"
+          {
+            echo "SUMMARY_ROWS<<EOF"
+            echo "| ${{ matrix.image-name }} | $imageSHA |"
+            echo "| ${{ matrix.image-name }}-addon.vhdx | $addonSHA |"
+            echo "| ${{ matrix.image-name }}-addon.vhdx.7z | $addon7zSHA |"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
           if [ ${{ inputs.is_release }} == "true" ] && [ ${{ inputs.build_type }} == "current" ]; then
           {
             if [ ${{ matrix.arch }} == "x86" ]; then
@@ -271,24 +278,29 @@ jobs:
             ${{ matrix.image-name }}
             ${{ matrix.image-name }}-addon.vhdx.7z
 
+      - name: Generate Build Summary
+        run: |
+          {
+            if [ ${{ inputs.build_type }} == "emus" ]; then
+            echo "## Stable Extended Maintenance Update Support Build ${{ inputs.tag_name }} (Arch: ${{ matrix.arch }})"
+            echo
+            echo "> [!NOTE]"
+            echo "> **This build not be release.**"
+            else
+            echo "## Stable Build ${{ inputs.tag_name }} (Arch: ${{ matrix.arch }})"
+            fi
+            echo
+            echo "### Hash Information"
+            echo "| File Name | SHA-256 Checksum |"
+            echo "|:--------------:|:------:|"
+            echo "${{ steps.gen-sha-256.outputs.SUMMARY_ROWS }}"
+          } >> $GITHUB_STEP_SUMMARY
+
   release:
     name: Release
     runs-on: ubuntu-latest
     needs: build
     if: ${{ inputs.is_release }}
-    env:
-      X86_IMAGE_SHA: ${{ needs.build.outputs.X86_IMAGE_SHA }}
-      X86_ADDON_SHA: ${{ needs.build.outputs.X86_ADDON_SHA }}
-      X86_ADDON_7Z_SHA: ${{ needs.build.outputs.X86_ADDON_7Z_SHA }}
-      X86_RT_IMAGE_SHA: ${{ needs.build.outputs.X86_RT_IMAGE_SHA }}
-      X86_RT_ADDON_SHA: ${{ needs.build.outputs.X86_RT_ADDON_SHA }}
-      X86_RT_ADDON_7Z_SHA: ${{ needs.build.outputs.X86_RT_ADDON_7Z_SHA }}
-      ARM64_IMAGE_SHA: ${{ needs.build.outputs.ARM64_IMAGE_SHA }}
-      ARM64_ADDON_SHA: ${{ needs.build.outputs.ARM64_ADDON_SHA }}
-      ARM64_ADDON_7Z_SHA: ${{ needs.build.outputs.ARM64_ADDON_7Z_SHA }}
-      ARM64_RT_IMAGE_SHA: ${{ needs.build.outputs.ARM64_RT_IMAGE_SHA }}
-      ARM64_RT_ADDON_SHA: ${{ needs.build.outputs.ARM64_RT_ADDON_SHA }}
-      ARM64_RT_ADDON_7Z_SHA: ${{ needs.build.outputs.ARM64_RT_ADDON_7Z_SHA }}
 
     steps:
       - name: Checkout
