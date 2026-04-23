@@ -81,15 +81,15 @@ jobs:
           mkdir -p ${{ matrix.image-name }}-addon_install && make modules_install INSTALL_MOD_PATH=${{ matrix.image-name }}-addon_install
           if [ ${{ inputs.build_type }} == "emus" ]; then
           if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
-          rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-STABLE-EMUS+/build
+          rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-STABLE-EMUS/build
           else
-          rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-RT-STABLE-EMUS+/build
+          rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-RT-STABLE-EMUS/build
           fi
           else
           if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
-          rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-STABLE+/build
+          rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-STABLE/build
           else
-          rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-RT-STABLE+/build
+          rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-RT-STABLE/build
           fi
           fi
 
@@ -98,15 +98,15 @@ jobs:
           cd linux
           if [ ${{ inputs.build_type }} == "emus" ]; then
           if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
-          export addon_path=${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-STABLE-EMUS+/build
+          export addon_path=${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-STABLE-EMUS/build
           else
-          export addon_path=${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-RT-STABLE-EMUS+/build
+          export addon_path=${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-RT-STABLE-EMUS/build
           fi
           else
           if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
-          export addon_path=${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-STABLE+/build
+          export addon_path=${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-STABLE/build
           else
-          export addon_path=${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-RT-STABLE+/build
+          export addon_path=${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-RT-STABLE/build
           fi
           fi
           mkdir -p $addon_path
@@ -180,15 +180,15 @@ jobs:
           cp -r Documentation $addon_path/Documentation
           if [ ${{ inputs.build_type }} == "emus" ]; then
           if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
-          rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-STABLE-EMUS+/build/${{ matrix.image-name }}-addon_install
+          rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-STABLE-EMUS/build/${{ matrix.image-name }}-addon_install
           else
-          rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-RT-STABLE-EMUS+/build/${{ matrix.image-name }}-addon_install
+          rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-RT-STABLE-EMUS/build/${{ matrix.image-name }}-addon_install
           fi
           else
           if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
-          rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-STABLE+/build/${{ matrix.image-name }}-addon_install
+          rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-STABLE/build/${{ matrix.image-name }}-addon_install
           else
-          rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-RT-STABLE+/build/${{ matrix.image-name }}-addon_install
+          rm -rf ${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-RT-STABLE/build/${{ matrix.image-name }}-addon_install
           fi
           fi
 
@@ -210,19 +210,19 @@ jobs:
         run: |
           if [ ${{ inputs.build_type }} == "emus" ]; then
           if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
-          mkdir -p linux/${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-STABLE-EMUS+/extra
-          find zfs/module -name "*.ko" -exec cp {} linux/${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-STABLE-EMUS+/extra \;
+          mkdir -p linux/${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-STABLE-EMUS/extra
+          find zfs/module -name "*.ko" -exec cp {} linux/${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-STABLE-EMUS/extra \;
           else
-          mkdir -p linux/${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-RT-STABLE-EMUS+/extra
-          find zfs/module -name "*.ko" -exec cp {} linux/${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-RT-STABLE-EMUS+/extra \;
+          mkdir -p linux/${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-RT-STABLE-EMUS/extra
+          find zfs/module -name "*.ko" -exec cp {} linux/${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-RT-STABLE-EMUS/extra \;
           fi
           else
           if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
-          mkdir -p linux/${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-STABLE+/extra
-          find zfs/module -name "*.ko" -exec cp {} linux/${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-STABLE+/extra \;
+          mkdir -p linux/${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-STABLE/extra
+          find zfs/module -name "*.ko" -exec cp {} linux/${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-STABLE/extra \;
           else
-          mkdir -p linux/${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-RT-STABLE+/extra
-          find zfs/module -name "*.ko" -exec cp {} linux/${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-RT-STABLE+/extra \;
+          mkdir -p linux/${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-RT-STABLE/extra
+          find zfs/module -name "*.ko" -exec cp {} linux/${{ matrix.image-name }}-addon_install/lib/modules/${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-RT-STABLE/extra \;
           fi
           fi
 
@@ -231,15 +231,15 @@ jobs:
           cd linux
           if [ ${{ inputs.build_type }} == "emus" ]; then
           if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
-          sudo ../.github/scripts/gen_modules_vhdx.sh "$PWD/${{ matrix.image-name }}-addon_install/" "${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-STABLE-EMUS+" ${{ matrix.image-name }}-addon.vhdx
+          sudo ../.github/scripts/gen_modules_vhdx.sh "$PWD/${{ matrix.image-name }}-addon_install/" "${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-STABLE-EMUS" ${{ matrix.image-name }}-addon.vhdx
           else
-          sudo ../.github/scripts/gen_modules_vhdx.sh "$PWD/${{ matrix.image-name }}-addon_install/" "${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-RT-STABLE-EMUS+" ${{ matrix.image-name }}-addon.vhdx
+          sudo ../.github/scripts/gen_modules_vhdx.sh "$PWD/${{ matrix.image-name }}-addon_install/" "${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-RT-STABLE-EMUS" ${{ matrix.image-name }}-addon.vhdx
           fi
           else
           if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "arm64" ]; then
-          sudo ../.github/scripts/gen_modules_vhdx.sh "$PWD/${{ matrix.image-name }}-addon_install/" "${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-STABLE+" ${{ matrix.image-name }}-addon.vhdx
+          sudo ../.github/scripts/gen_modules_vhdx.sh "$PWD/${{ matrix.image-name }}-addon_install/" "${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-STABLE" ${{ matrix.image-name }}-addon.vhdx
           else
-          sudo ../.github/scripts/gen_modules_vhdx.sh "$PWD/${{ matrix.image-name }}-addon_install/" "${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-RT-STABLE+" ${{ matrix.image-name }}-addon.vhdx
+          sudo ../.github/scripts/gen_modules_vhdx.sh "$PWD/${{ matrix.image-name }}-addon_install/" "${{ steps.check-version.outputs.KERNEL_VERSION }}-WSL2-RT-STABLE" ${{ matrix.image-name }}-addon.vhdx
           fi
           fi
           7z a -mx=9 ${{ matrix.image-name }}-addon.vhdx.7z ${{ matrix.image-name }}-addon.vhdx > /dev/null
