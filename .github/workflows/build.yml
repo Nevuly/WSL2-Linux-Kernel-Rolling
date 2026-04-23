@@ -284,6 +284,7 @@ jobs:
           path: |
             ${{ matrix.image-name }}
             ${{ matrix.image-name }}-addon.vhdx.7z
+          if-no-files-found: error
 
       - name: Generate Build Summary
         run: |
