@@ -53,7 +53,7 @@ jobs:
         run: |
           git clone https://github.com/Nevuly/WSL2-Linux-Kernel-Rolling.git --depth 1 -b ${{ inputs.tag_name }} linux
 
-      - name: Check Kernel version
+      - name: Check Kernel Version
         id: check-version
         run: |
           if [ ${{ inputs.build_type }} == "emus" ]; then
