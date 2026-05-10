@@ -327,15 +327,6 @@ jobs:
             echo ">"
             echo "> If you have any issues, please leave an issue on the [issue tab](https://github.com/Nevuly/WSL2-Rolling-Kernel-Issue/issues)!"
             echo
-            echo "> [!NOTE]"
-            echo "> **THIS NOTE WILL REMAIN UNTIL THE ISSUE IS RESOLVED**"
-            echo ">"
-            echo "> If you update to WSL version `2.7.3.0`, WSL2 will fail to boot after installing the Kernel Addon `vhdx` package via `Scoop`!"
-            echo ">"
-            echo "> Therefore, you should either postpone the WSL update or manually specify the `vhdx` image to the `C:\` root directory."
-            echo ">"
-            echo "> For more details, please check [this issue](https://github.com/microsoft/WSL/issues/40482)."
-            echo
             if [ ${{ inputs.build_rt }} != "true" ]; then
             echo "> [!NOTE]"
             echo "> This build not included RT kernel!"
