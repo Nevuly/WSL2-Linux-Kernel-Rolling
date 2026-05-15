@@ -606,7 +606,7 @@ static inline void tcp_ecn_send_syn(struct sock *sk, struct sk_buff *skb)
 	use_ecn = tcp_ecn == TCP_ECN_IN_ECN_OUT_ECN ||
 		  tcp_ecn == TCP_ECN_IN_ACCECN_OUT_ECN ||
 		  tcp_ca_needs_ecn(sk) || bpf_needs_ecn || use_accecn;
-		const struct dst_entry *dst = __sk_dst_get(sk);
+	const struct dst_entry *dst = __sk_dst_get(sk);
 
 	if (!use_ecn) {
 		if (dst && dst_feature(dst, RTAX_FEATURE_ECN))
