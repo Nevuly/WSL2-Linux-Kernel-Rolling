@@ -10,8 +10,6 @@
  *   Ported to recent kernel versions
  * Copyright (c) 2022 Syrone Wong <wong.syrone@gmail.com>
  *   Massively rewrite the whole module, split the original code into library and nftables 'fullcone' expression module
- * Copyright (c) 2022 Alexandre Frade <kernel@xanmod.org>
- *   Ported to latest kernel source tree
  */
 
 #define pr_fmt(fmt) "fullcone " KBUILD_MODNAME ": " fmt
@@ -856,11 +854,7 @@ static uint16_t find_appropriate_port6(struct net *net, const u16 zone,
 		/* for now we do the same thing for both --random and --random-fully */
 
 		/* select a random starting point */
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0)
 		start = (uint16_t) (get_random_u32() % (u32) range_size);
-#else
-		start = (uint16_t) (prandom_u32() % (u32) range_size);
-#endif
 	} else {
 
 		if ((original_port >= min && original_port <= min + range_size - 1)
@@ -933,11 +927,7 @@ static uint16_t find_appropriate_port(struct net *net, const u16 zone,
 		/* for now we do the same thing for both --random and --random-fully */
 
 		/* select a random starting point */
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0)
 		start = (uint16_t) (get_random_u32() % (u32) range_size);
-#else
-		start = (uint16_t) (prandom_u32() % (u32) range_size);
-#endif
 	} else {
 
 		if ((original_port >= min && original_port <= min + range_size - 1)
