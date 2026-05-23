@@ -1960,8 +1960,8 @@ static void bbr_check_drain(struct sock *sk, const struct rate_sample *rs,
 		 * completion of initial STARTUP by setting to a non-
 		 * TCP_INFINITE_SSTHRESH value (ssthresh is not used by BBR).
 		 */
-		tcp_sk(sk)->snd_ssthresh =
-				bbr_inflight(sk, bbr_max_bw(sk), BBR_UNIT);
+		WRITE_ONCE(tcp_sk(sk)->snd_ssthresh,
+			   bbr_inflight(sk, bbr_max_bw(sk), BBR_UNIT));
 		bbr_reset_congestion_signals(sk);
 	}	/* fall through to check if in-flight is already small: */
 	if (bbr->mode == BBR_DRAIN &&
@@ -2086,7 +2086,7 @@ __bpf_kfunc static void bbr_init(struct sock *sk)
 
 	bbr->init_cwnd = min(0x7FU, tcp_snd_cwnd(tp));
 	bbr->prior_cwnd = tp->prior_cwnd;
-	tp->snd_ssthresh = TCP_INFINITE_SSTHRESH;
+	WRITE_ONCE(tp->snd_ssthresh, TCP_INFINITE_SSTHRESH);
 	bbr->next_rtt_delivered = tp->delivered;
 	bbr->prev_ca_state = TCP_CA_Open;
 
