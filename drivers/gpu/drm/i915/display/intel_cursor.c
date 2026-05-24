@@ -919,15 +919,13 @@ intel_legacy_cursor_update(struct drm_plane *_plane,
 		 */
 		intel_psr_wait_for_idle_locked(crtc_state);
 
-		if (!IS_ENABLED(CONFIG_PREEMPT_RT))
-			local_irq_disable();
+		local_irq_disable();
 
 		intel_vblank_evade(&evade);
 
 		drm_crtc_vblank_put(&crtc->base);
 	} else {
-		if (!IS_ENABLED(CONFIG_PREEMPT_RT))
-			local_irq_disable();
+		local_irq_disable();
 	}
 
 	if (new_plane_state->uapi.visible) {
@@ -937,8 +935,7 @@ intel_legacy_cursor_update(struct drm_plane *_plane,
 		intel_plane_disable_arm(NULL, plane, crtc_state);
 	}
 
-	if (!IS_ENABLED(CONFIG_PREEMPT_RT))
-		local_irq_enable();
+	local_irq_enable();
 
 	intel_psr_unlock(crtc_state);
 
