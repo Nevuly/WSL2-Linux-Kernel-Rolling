@@ -298,10 +298,8 @@ cleanup:
 	if (dmafence)
 		dma_fence_put(dmafence);
 	if (ret) {
-		if (syncobj) {
+		if (syncobj) 
 			dxgsyncobject_destroy(process, syncobj);
-			kref_put(&syncobj->syncobj_kref, dxgsyncobject_release);
-		}
 	}
 	if (adapter)
 		dxgadapter_release_lock_shared(adapter);
