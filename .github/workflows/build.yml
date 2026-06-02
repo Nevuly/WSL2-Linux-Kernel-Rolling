@@ -118,7 +118,7 @@ jobs:
           install -Dt "$addon_path/arch/arm64" -m644 arch/arm64/Makefile
           fi
           cp -t "$addon_path" -a scripts
-          ln -srt "$addon_path" "addon_path/scripts/gdb/vmlinux-gdb.py"
+          ln -srt "$addon_path" "$addon_path/scripts/gdb/vmlinux-gdb.py"
           if [ ${{ matrix.arch }} == "x86" ] || [ ${{ matrix.arch }} == "x86-rt" ]; then
           install -Dt "$addon_path/tools/objtool" tools/objtool/objtool
           fi
