@@ -297,9 +297,14 @@ int dxgkio_open_syncobj_from_syncfile(struct dxgprocess *process,
 cleanup:
 	if (dmafence)
 		dma_fence_put(dmafence);
-	if (ret) {
-		if (syncobj) 
+	if (syncobj) {
+		if (ret) {
 			dxgsyncobject_destroy(process, syncobj);
+			if (openargs.sync_object.v)
+				dxgvmb_send_destroy_sync_object(process, openargs.sync_object);
+		} else {
+			kref_put(&syncobj->syncobj_kref, dxgsyncobject_release);
+		}
 	}
 	if (adapter)
 		dxgadapter_release_lock_shared(adapter);
