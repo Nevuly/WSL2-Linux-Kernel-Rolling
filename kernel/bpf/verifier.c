@@ -5871,6 +5871,8 @@ BTF_TYPE_SAFE_RCU(struct task_struct) {
 	struct css_set __rcu *cgroups;
 	struct task_struct __rcu *real_parent;
 	struct task_struct *group_leader;
+	const struct cred __rcu *real_cred;
+	const struct cred __rcu *cred;
 };
 
 BTF_TYPE_SAFE_RCU(struct cgroup) {
