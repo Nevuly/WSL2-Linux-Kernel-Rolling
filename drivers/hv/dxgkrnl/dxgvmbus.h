@@ -722,7 +722,7 @@ struct dxgkvmb_command_waitforsyncobjectfromgpu {
 	/* Must be 1 when bLegacyFenceObject is TRUE */
 	u32				object_count;
 	bool				legacy_fence_object;
-	u64				fence_values[1];
+	u64				fence_values[];
 	/* struct d3dkmthandle ObjectHandles[object_count] */
 };
 

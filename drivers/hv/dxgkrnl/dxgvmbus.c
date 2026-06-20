@@ -3069,7 +3069,7 @@ int dxgvmb_send_wait_sync_object_gpu(struct dxgprocess *process,
 	u32 fence_size = object_count * sizeof(u64);
 	u32 object_size = object_count * sizeof(struct d3dkmthandle);
 	u8 *current_pos;
-	u32 cmd_size = object_size + fence_size - sizeof(u64) +
+	u32 cmd_size = object_size + fence_size +
 	    sizeof(struct dxgkvmb_command_waitforsyncobjectfromgpu);
 	struct dxgvmbusmsg msg = {.hdr = NULL};
 	struct dxgglobal *dxgglobal = dxggbl();
