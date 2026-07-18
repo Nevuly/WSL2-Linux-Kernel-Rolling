@@ -13,10 +13,10 @@ run-name: Stable Release Build ${{ github.ref_name }}
 jobs:
   call-core-workflow:
     name: Stable Kernel Build
-    uses: Nevuly/WSL2-Linux-Kernel-Rolling/.github/workflows/build.yml@master
+    uses: Nevuly/excavator/.github/workflows/excavator.yml@master
     with:
       tag_name: ${{ github.ref_name }}
-      build_type: current
+      build_type: stable
       build_rt: true
       build_zfs: true
       is_release: ${{ github.event_name != 'pull_request' }}
