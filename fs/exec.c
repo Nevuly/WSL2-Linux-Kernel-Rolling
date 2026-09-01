@@ -1469,9 +1469,9 @@ static void free_bprm(struct linux_binprm *bprm)
 	/* exec swapped the mm but failed before setup_new_exec() freed it */
 	if (bprm->old_mm)
 		exec_mm_put_old(bprm->old_mm);
-	do_close_execat(bprm->file);
 	/* An unconsumed PT_INTERP substitute from a binfmt_misc loader entry. */
 	bprm_drop_loader(bprm);
+	do_close_execat(bprm->file);
 	do_close_execat(bprm->executable);
 	/* If a binfmt changed the interp, free it. */
 	if (bprm->interp != bprm->filename)
