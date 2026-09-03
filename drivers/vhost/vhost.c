@@ -392,6 +392,7 @@ static void vhost_vq_reset(struct vhost_dev *dev,
 	vq->busyloop_timeout = 0;
 	vq->umem = NULL;
 	vq->iotlb = NULL;
+	vq->iotlb_miss = NULL;
 	rcu_assign_pointer(vq->worker, NULL);
 	vhost_vring_call_reset(&vq->call_ctx);
 	__vhost_vq_meta_reset(vq);
@@ -1180,6 +1181,21 @@ void vhost_dev_stop(struct vhost_dev *dev)
 }
 EXPORT_SYMBOL_GPL(vhost_dev_stop);
 
+static void vhost_free_msg_locked(struct vhost_msg_node *node)
+{
+	if (node->vq->iotlb_miss == node)
+		node->vq->iotlb_miss = NULL;
+	kfree(node);
+}
+
+static void vhost_free_msg(struct vhost_dev *dev,
+			   struct vhost_msg_node *node)
+{
+	spin_lock(&dev->iotlb_lock);
+	vhost_free_msg_locked(node);
+	spin_unlock(&dev->iotlb_lock);
+}
+
 void vhost_clear_msg(struct vhost_dev *dev)
 {
 	struct vhost_msg_node *node, *n;
@@ -1188,12 +1204,12 @@ void vhost_clear_msg(struct vhost_dev *dev)
 
 	list_for_each_entry_safe(node, n, &dev->read_list, node) {
 		list_del(&node->node);
-		kfree(node);
+		vhost_free_msg_locked(node);
 	}
 
 	list_for_each_entry_safe(node, n, &dev->pending_list, node) {
 		list_del(&node->node);
-		kfree(node);
+		vhost_free_msg_locked(node);
 	}
 
 	spin_unlock(&dev->iotlb_lock);
@@ -1602,7 +1618,7 @@ static void vhost_iotlb_notify_vq(struct vhost_dev *d,
 		    vq_msg->type == VHOST_IOTLB_MISS) {
 			vhost_poll_queue(&node->vq->poll);
 			list_del(&node->node);
-			kfree(node);
+			vhost_free_msg_locked(node);
 		}
 	}
 
@@ -1816,7 +1832,7 @@ ssize_t vhost_chr_read_iter(struct vhost_dev *dev, struct iov_iter *to,
 
 		ret = copy_to_iter(start, size, to);
 		if (ret != size || msg->type != VHOST_IOTLB_MISS) {
-			kfree(node);
+			vhost_free_msg(dev, node);
 			return ret;
 		}
 		vhost_enqueue_msg(dev, &dev->pending_list, node);
@@ -1848,7 +1864,19 @@ static int vhost_iotlb_miss(struct vhost_virtqueue *vq, u64 iova, int access)
 	msg->iova = iova;
 	msg->perm = access;
 
-	vhost_enqueue_msg(dev, &dev->read_list, node);
+	spin_lock(&dev->iotlb_lock);
+	/* VQ processing stops at the first miss until userspace resolves it. */
+	if (vq->iotlb_miss) {
+		spin_unlock(&dev->iotlb_lock);
+		kfree(node);
+		return 0;
+	}
+
+	vq->iotlb_miss = node;
+	list_add_tail(&node->node, &dev->read_list);
+	spin_unlock(&dev->iotlb_lock);
+
+	wake_up_interruptible_poll(&dev->wait, EPOLLIN | EPOLLRDNORM);
 
 	return 0;
 }
