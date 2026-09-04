@@ -1208,6 +1208,7 @@ struct netvsc_device {
 
 	atomic_t open_chn;
 	atomic_t open_chn_ok;
+	bool subchan_setup_active;
 	struct work_struct subchan_work;
 	wait_queue_head_t subchan_open;
 
