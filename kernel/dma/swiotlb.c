@@ -1955,7 +1955,7 @@ struct io_tlb_mem *swiotlb_create_pool(phys_addr_t base, size_t size,
 
 	set_memory_decrypted((unsigned long)phys_to_virt(base),
 			     size >> PAGE_SHIFT);
-	swiotlb_init_io_tlb_pool(pool, base, nslabs, false, nareas);
+	swiotlb_init_io_tlb_pool(pool, base, phys_to_virt(base), nslabs, false, nareas);
 	mem->force_bounce = true;
 	mem->for_alloc = false;
 #ifdef CONFIG_SWIOTLB_DYNAMIC
