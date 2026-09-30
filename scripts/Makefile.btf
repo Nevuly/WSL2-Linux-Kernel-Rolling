@@ -18,7 +18,9 @@ pahole-flags-$(call test-ge, $(pahole-ver), 126)  = -j$(JOBS) --btf_features=enc
 
 pahole-flags-$(call test-ge, $(pahole-ver), 130) += --btf_features=attributes
 
-pahole-flags-$(call test-ge, $(pahole-ver), 131) += --btf_features=layout
+# Docker Desktop's eBPF loaders (cilium/ebpf < v0.22) reject non-zero
+# layout fields in the BTF header, so don't emit the layout section.
+# pahole-flags-$(call test-ge, $(pahole-ver), 131) += --btf_features=layout
 
 endif
 
