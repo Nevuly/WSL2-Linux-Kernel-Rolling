@@ -2,3 +2,4 @@
 clone3_empty_mntns_test
 empty_mntns_test
 overmount_chroot_test
+internal_sb_reconfigure_test
