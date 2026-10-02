@@ -81,6 +81,7 @@ static struct hlist_head *mount_hashtable __ro_after_init;
 static struct hlist_head *mountpoint_hashtable __ro_after_init;
 static struct kmem_cache *mnt_cache __ro_after_init;
 struct vfsmount *knullfs __ro_after_init;	/* private nullfs instance */
+static struct vfsmount *knullfs_file __ro_after_init;	/* its regular file */
 static DECLARE_RWSEM(namespace_sem);
 static HLIST_HEAD(unmounted);	/* protected by namespace_sem */
 static LIST_HEAD(ex_mountpoints); /* protected by namespace_sem */
@@ -6330,6 +6331,25 @@ static void __init mount_rootfs_on_nullfs(struct vfsmount *mnt,
 		attach_mnt(real_mount(mnt), mp.parent, mp.mp);
 }
 
+static struct vfsmount *__init knullfs_file_mount(void)
+{
+	struct dentry *file;
+	struct mount *mnt;
+
+	file = nullfs_new_file(knullfs->mnt_sb);
+	if (IS_ERR(file))
+		return ERR_CAST(file);
+	mnt = clone_mnt(real_mount(knullfs), file, CL_PRIVATE);
+	dput(file);
+	if (IS_ERR(mnt))
+		return ERR_CAST(mnt);
+	mnt->mnt_ns = MNT_NS_INTERNAL;
+	mnt->mnt.mnt_flags |= MNT_INTERNAL;
+	mnt->mnt.mnt_flags &= ~MNT_READONLY;
+	dont_mount(mnt->mnt.mnt_root);
+	return &mnt->mnt;
+}
+
 static void __init init_mount_tree(void)
 {
 	struct vfsmount *mnt, *nullfs_mnt;
@@ -6342,6 +6362,8 @@ static void __init init_mount_tree(void)
 	 * (1) nullfs with mount id 1
 	 * (2) mutable rootfs with mount id 2
 	 * (3) private nullfs for kthreads (SB_KERNMOUNT), kept in knullfs
+	 * (4) a second mount of (3) rooted on a regular file, kept in
+	 *     knullfs_file
 	 *
 	 * with (2) mounted on top of (1). The init_task's root and pwd
 	 * are pointed at (3) so all kthreads start isolated in nullfs.
@@ -6383,6 +6405,9 @@ static void __init init_mount_tree(void)
 	dont_mount(knullfs->mnt_root);
 	/* and nothing is ever written through it */
 	knullfs->mnt_flags |= MNT_READONLY;
+	knullfs_file = knullfs_file_mount();
+	if (IS_ERR(knullfs_file))
+		panic("VFS: Failed to create the nullfs file stand-in");
 	root.mnt	= knullfs;
 	root.dentry	= knullfs->mnt_root;
 

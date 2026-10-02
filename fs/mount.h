@@ -6,6 +6,7 @@
 #include <linux/fs_pin.h>
 
 extern struct file_system_type nullfs_fs_type;
+extern struct dentry *nullfs_new_file(struct super_block *sb);
 extern struct vfsmount *knullfs;
 extern struct list_head notify_list;
 
