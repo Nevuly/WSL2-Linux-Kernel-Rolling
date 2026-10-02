@@ -61,6 +61,7 @@ static int nullfs_init_fs_context(struct fs_context *fc)
 
 struct file_system_type nullfs_fs_type = {
 	.name			= "nullfs",
+	.fs_flags		= FS_DISALLOW_NOTIFY,
 	.init_fs_context	= nullfs_init_fs_context,
 	.kill_sb		= kill_anon_super,
 };
