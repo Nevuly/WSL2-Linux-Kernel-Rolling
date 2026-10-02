@@ -2814,6 +2814,11 @@ static void do_lock_mount(const struct path *path,
 
 		scoped_guard(mount_locked_reader) {
 			m = where_to_mount(path, &dentry, beneath);
+			/* sticky, so it takes no locks to refuse it */
+			if (unlikely(cant_mount(dentry))) {
+				res->parent = ERR_PTR(-ENOENT);
+				return;
+			}
 			if (&m->mnt != path->mnt) {
 				mntget(&m->mnt);
 				dget(dentry);
@@ -6374,6 +6379,10 @@ static void __init init_mount_tree(void)
 	knullfs = kern_mount(&nullfs_fs_type);
 	if (IS_ERR(knullfs))
 		panic("VFS: Failed to create private nullfs instance");
+	/* nothing is ever mounted on the root of a kernel thread */
+	dont_mount(knullfs->mnt_root);
+	/* and nothing is ever written through it */
+	knullfs->mnt_flags |= MNT_READONLY;
 	root.mnt	= knullfs;
 	root.dentry	= knullfs->mnt_root;
 
