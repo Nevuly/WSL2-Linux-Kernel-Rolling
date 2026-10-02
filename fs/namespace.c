@@ -2353,7 +2353,7 @@ void dissolve_on_fput(struct vfsmount *mnt)
 }
 
 /* locks: namespace_shared && pinned(mnt) || mount_locked_reader */
-static bool __has_locked_children(struct mount *mnt, struct dentry *dentry)
+bool has_locked_children(struct mount *mnt, struct dentry *dentry)
 {
 	struct mount *child;
 
@@ -2365,12 +2365,6 @@ static bool __has_locked_children(struct mount *mnt, struct dentry *dentry)
 			return true;
 	}
 	return false;
-}
-
-bool has_locked_children(struct mount *mnt, struct dentry *dentry)
-{
-	guard(mount_locked_reader)();
-	return __has_locked_children(mnt, dentry);
 }
 
 /* locks: namespace_shared && pinned(mnt) || mount_locked_reader */
@@ -2441,7 +2435,7 @@ struct vfsmount *clone_private_mount(const struct path *path)
 	if (!ns_capable(old_mnt->mnt_ns->user_ns, CAP_SYS_ADMIN))
 		return ERR_PTR(-EPERM);
 
-	if (__has_locked_children(old_mnt, path->dentry))
+	if (has_locked_children(old_mnt, path->dentry))
 		return ERR_PTR(-EINVAL);
 
 	new_mnt = clone_mnt(old_mnt, path->dentry, CL_PRIVATE);
@@ -3056,7 +3050,7 @@ static struct mount *__do_loopback(const struct path *old_path,
 	if (recurse && !old->mnt_ns)
 		return ERR_PTR(-EINVAL);
 
-	if (!recurse && __has_locked_children(old, old_path->dentry))
+	if (!recurse && has_locked_children(old, old_path->dentry))
 		return ERR_PTR(-EINVAL);
 
 	if (recurse)
@@ -3544,7 +3538,7 @@ static int do_set_group(const struct path *from_path, const struct path *to_path
 		return -EINVAL;
 
 	/* From mount should not have locked children in place of To's root */
-	if (__has_locked_children(from, to->mnt.mnt_root))
+	if (has_locked_children(from, to->mnt.mnt_root))
 		return -EINVAL;
 
 	/* Setting sharing groups is only allowed on private mounts */
