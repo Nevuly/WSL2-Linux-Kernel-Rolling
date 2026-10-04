@@ -80,6 +80,7 @@ static u64 mnt_id_ctr = MNT_UNIQUE_ID_OFFSET;
 static struct hlist_head *mount_hashtable __ro_after_init;
 static struct hlist_head *mountpoint_hashtable __ro_after_init;
 static struct kmem_cache *mnt_cache __ro_after_init;
+struct vfsmount *knullfs __ro_after_init;	/* private nullfs instance */
 static DECLARE_RWSEM(namespace_sem);
 static HLIST_HEAD(unmounted);	/* protected by namespace_sem */
 static LIST_HEAD(ex_mountpoints); /* protected by namespace_sem */
@@ -1996,6 +1997,9 @@ out:
  * detach_mounts allows lazily unmounting those mounts instead of
  * leaking them.
  *
+ * The dentry is unhashed before the mounts go so that no lookup finds
+ * what they covered. The caller removes it for good afterwards.
+ *
  * The caller may hold dentry->d_inode->i_rwsem.
  */
 void __detach_mounts(struct dentry *dentry)
@@ -2009,6 +2013,8 @@ void __detach_mounts(struct dentry *dentry)
 	if (!lookup_mountpoint(dentry, &mp))
 		return;
 
+	/* the name goes first, what covered it goes second */
+	d_drop(dentry);
 	event++;
 	while (mp.node.next) {
 		mnt = hlist_entry(mp.node.next, struct mount, mnt_mp_list);
@@ -2348,7 +2354,7 @@ void dissolve_on_fput(struct vfsmount *mnt)
 }
 
 /* locks: namespace_shared && pinned(mnt) || mount_locked_reader */
-static bool __has_locked_children(struct mount *mnt, struct dentry *dentry)
+bool has_locked_children(struct mount *mnt, struct dentry *dentry)
 {
 	struct mount *child;
 
@@ -2360,12 +2366,6 @@ static bool __has_locked_children(struct mount *mnt, struct dentry *dentry)
 			return true;
 	}
 	return false;
-}
-
-bool has_locked_children(struct mount *mnt, struct dentry *dentry)
-{
-	guard(mount_locked_reader)();
-	return __has_locked_children(mnt, dentry);
 }
 
 /* locks: namespace_shared && pinned(mnt) || mount_locked_reader */
@@ -2436,7 +2436,7 @@ struct vfsmount *clone_private_mount(const struct path *path)
 	if (!ns_capable(old_mnt->mnt_ns->user_ns, CAP_SYS_ADMIN))
 		return ERR_PTR(-EPERM);
 
-	if (__has_locked_children(old_mnt, path->dentry))
+	if (has_locked_children(old_mnt, path->dentry))
 		return ERR_PTR(-EINVAL);
 
 	new_mnt = clone_mnt(old_mnt, path->dentry, CL_PRIVATE);
@@ -2599,11 +2599,11 @@ enum mnt_tree_flags_t {
 static int attach_recursive_mnt(struct mount *source_mnt,
 				const struct pinned_mountpoint *dest)
 {
-	struct user_namespace *user_ns = current->nsproxy->mnt_ns->user_ns;
 	struct mount *dest_mnt = dest->parent;
 	struct mountpoint *dest_mp = dest->mp;
 	HLIST_HEAD(tree_list);
 	struct mnt_namespace *ns = dest_mnt->mnt_ns;
+	struct user_namespace *user_ns = ns->user_ns;
 	struct pinned_mountpoint root = {};
 	struct mountpoint *shorter = NULL;
 	struct mount *child, *p;
@@ -2611,6 +2611,22 @@ static int attach_recursive_mnt(struct mount *source_mnt,
 	struct hlist_node *n;
 	int err = 0;
 	bool moving = mnt_has_parent(source_mnt);
+
+	/*
+	 * A caller in an unprivileged mount namespaces may trigger an
+	 * automount and propagate locked mounts into privileged mount
+	 * namespaces. Take ownership from the target mount namespace.
+	 * It's equivalent for everything but the automount case.
+	 *
+	 * Detached trees in anonymous mount namespaces by be handed
+	 * over via SCM_RIGHTS or inherited in other ways on purpose
+	 * the attaching task's mount namespace is authoritative, not
+	 * the creator of the detached tree.
+	 */
+	if (is_anon_ns(ns))
+		user_ns = current->nsproxy->mnt_ns->user_ns;
+	else
+		user_ns = ns->user_ns;
 
 	/*
 	 * Preallocate a mountpoint in case the new mounts need to be
@@ -2691,15 +2707,17 @@ static int attach_recursive_mnt(struct mount *source_mnt,
 			/*
 			 * If @q was locked it was meant to hide
 			 * whatever was under it. Let @child take over
-			 * that job and lock it, then we can unlock @q.
-			 * That'll allow another namespace to shed @q
-			 * and reveal @child. Clearly, that mounter
-			 * consented to this by not severing the mount
-			 * relationship. Otherwise, what's the point.
+			 * that job and lock it. If @child is the mount
+			 * the caller placed we can then unlock @q:
+			 * nothing another namespace does removes it
+			 * again. A propagated copy goes away when the
+			 * mounter of the original unmounts it, so @q
+			 * keeps its lock.
 			 */
 			if (IS_MNT_LOCKED(q)) {
 				child->mnt.mnt_flags |= MNT_LOCKED;
-				q->mnt.mnt_flags &= ~MNT_LOCKED;
+				if (child == source_mnt)
+					q->mnt.mnt_flags &= ~MNT_LOCKED;
 			}
 			mnt_change_mountpoint(r, mp, q);
 		}
@@ -2796,6 +2814,11 @@ static void do_lock_mount(const struct path *path,
 
 		scoped_guard(mount_locked_reader) {
 			m = where_to_mount(path, &dentry, beneath);
+			/* sticky, so it takes no locks to refuse it */
+			if (unlikely(cant_mount(dentry))) {
+				res->parent = ERR_PTR(-ENOENT);
+				return;
+			}
 			if (&m->mnt != path->mnt) {
 				mntget(&m->mnt);
 				dget(dentry);
@@ -3033,7 +3056,7 @@ static struct mount *__do_loopback(const struct path *old_path,
 	if (recurse && !old->mnt_ns)
 		return ERR_PTR(-EINVAL);
 
-	if (!recurse && __has_locked_children(old, old_path->dentry))
+	if (!recurse && has_locked_children(old, old_path->dentry))
 		return ERR_PTR(-EINVAL);
 
 	if (recurse)
@@ -3521,7 +3544,7 @@ static int do_set_group(const struct path *from_path, const struct path *to_path
 		return -EINVAL;
 
 	/* From mount should not have locked children in place of To's root */
-	if (__has_locked_children(from, to->mnt.mnt_root))
+	if (has_locked_children(from, to->mnt.mnt_root))
 		return -EINVAL;
 
 	/* Setting sharing groups is only allowed on private mounts */
@@ -3801,7 +3824,7 @@ static int do_add_mount(struct mount *newmnt, const struct pinned_mountpoint *mp
 		if (!(mnt_flags & MNT_SHRINKABLE))
 			return -EINVAL;
 		/* ... and for those we'd better have mountpoint still alive */
-		if (!parent->mnt_ns)
+		if (!is_mounted(&parent->mnt))
 			return -EINVAL;
 	}
 
@@ -4011,6 +4034,8 @@ void mark_mounts_for_expiry(struct list_head *mounts)
 	list_for_each_entry_safe(mnt, next, mounts, mnt_expire) {
 		if (!is_mounted(&mnt->mnt))
 			continue;
+		/* lock_mnt_tree() leaves expirable mounts alone */
+		VFS_WARN_ON_ONCE(IS_MNT_LOCKED(mnt));
 		if (!xchg(&mnt->mnt_expiry_mark, 1) ||
 			propagate_mount_busy(mnt, 1))
 			continue;
@@ -4037,7 +4062,8 @@ EXPORT_SYMBOL_GPL(mark_mounts_for_expiry);
  */
 static bool shrink_submount(struct mount *mnt)
 {
-	if (propagate_mount_busy(mnt, 1))
+	/* not the kernel's to remove either */
+	if (IS_MNT_LOCKED(mnt) || propagate_mount_busy(mnt, 1))
 		return false;
 	touch_mnt_namespace(mnt->mnt_ns);
 	umount_tree(mnt, UMOUNT_PROPAGATE|UMOUNT_SYNC);
@@ -6315,7 +6341,7 @@ static void __init init_mount_tree(void)
 	 *
 	 * (1) nullfs with mount id 1
 	 * (2) mutable rootfs with mount id 2
-	 * (3) private nullfs for kthreads (SB_KERNMOUNT)
+	 * (3) private nullfs for kthreads (SB_KERNMOUNT), kept in knullfs
 	 *
 	 * with (2) mounted on top of (1). The init_task's root and pwd
 	 * are pointed at (3) so all kthreads start isolated in nullfs.
@@ -6350,11 +6376,15 @@ static void __init init_mount_tree(void)
 		init_mnt_ns.nr_mounts++;
 	}
 
-	nullfs_mnt = kern_mount(&nullfs_fs_type);
-	if (IS_ERR(nullfs_mnt))
+	knullfs = kern_mount(&nullfs_fs_type);
+	if (IS_ERR(knullfs))
 		panic("VFS: Failed to create private nullfs instance");
-	root.mnt	= nullfs_mnt;
-	root.dentry	= nullfs_mnt->mnt_root;
+	/* nothing is ever mounted on the root of a kernel thread */
+	dont_mount(knullfs->mnt_root);
+	/* and nothing is ever written through it */
+	knullfs->mnt_flags |= MNT_READONLY;
+	root.mnt	= knullfs;
+	root.dentry	= knullfs->mnt_root;
 
 	init_task.nsproxy->mnt_ns = &init_mnt_ns;
 	get_mnt_ns(&init_mnt_ns);
