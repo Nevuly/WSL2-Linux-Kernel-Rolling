@@ -18,6 +18,6 @@ jobs:
       tag_name: ${{ github.ref_name }}
       build_type: stable
       build_rt: true
-      build_zfs: true
+      build_zfs: false
       is_release: ${{ github.event_name != 'pull_request' }}
     secrets: inherit
