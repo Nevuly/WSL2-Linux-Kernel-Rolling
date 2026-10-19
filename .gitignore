@@ -116,6 +116,7 @@ modules.order
 !.editorconfig
 !.get_maintainer.ignore
 !.gitattributes
+!.github
 !.gitignore
 !.kunitconfig
 !.mailmap
