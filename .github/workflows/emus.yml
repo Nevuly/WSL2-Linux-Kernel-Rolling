@@ -3,7 +3,7 @@ name: Stable EMUS Kernel CI
 on:
   push:
     tags:
-      - 'linux-wsl-stable-7.2.[0-9]+-emus'
+      - 'linux-wsl-stable-7.2.[0-9]+.[0-9]+-emus'
 
 run-name: Stable EMUS Build ${{ github.ref_name }}
 
